@@ -18,7 +18,6 @@ const userSlice = createSlice({
       state.error = null;
     },
     getUsersuccess: (state, action) => {
-      // console.log("reducer user success: ",action.payload);
       state.loading = false;
       state.data = action.payload;
     },

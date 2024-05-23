@@ -39,7 +39,6 @@ export const loginUser = (username, password) => async (dispatch, getState) => {
     dispatch(loginRequest());
 
     const data = await loginPage(username, password);
-    console.log('data token in reducer signin:', data);
     dispatch(loginSuccess(data));
     return data;
   } catch (error) {

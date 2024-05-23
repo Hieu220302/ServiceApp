@@ -3,11 +3,16 @@ import {
   configureStore,
   getDefaultMiddleware,
 } from '@reduxjs/toolkit';
-import loginSlice from './reducers/Login/signinReducer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {persistReducer, persistStore} from 'redux-persist';
+
+import loginSlice from './reducers/Login/signinReducer';
+import groupService from './reducers/groupService/groupServiceReducer';
+import inforService from './reducers/inforService/inforServiceReducer';
 const rootReducer = combineReducers({
   login: loginSlice,
+  groupService: groupService,
+  inforService: inforService,
 });
 
 const persistConfig = {
