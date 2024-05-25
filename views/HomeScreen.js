@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Dimensions,
 } from 'react-native';
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {groupService} from '../redux/reducers/groupService/groupServiceReducer';
 import {inforService} from '../redux/reducers/inforService/inforServiceReducer';
 import {useNavigation} from '@react-navigation/native';
+import Carousel from 'react-native-reanimated-carousel';
 const HomeScreen = () => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataGroupService} = useSelector(state => state.groupService);
@@ -25,6 +27,25 @@ const HomeScreen = () => {
     }
   }, []);
   const navigation = useNavigation();
+  const width = Dimensions.get('window').width;
+  const list = [
+    {
+      id: 1,
+      title: 'First Item',
+      image: require('./image/1.jpg'),
+    },
+    {
+      id: 2,
+      title: 'Second Item',
+      image: require('./image/2.jpg'),
+    },
+    {
+      id: 3,
+      title: 'Third Item',
+      image: require('./image/3.jpg'),
+    },
+  ];
+  const [pagingEnabled, setPagingEnabled] = useState(true);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -37,11 +58,18 @@ const HomeScreen = () => {
       </View>
       <ScrollView>
         <View style={styles.bannerContainer}>
-          <Image
-            source={{
-              uri: 'https://th.bing.com/th/id/OIP.vaBeqiTJIFRkjI1pDdOPJQHaE7?rs=1&pid=ImgDetMain',
-            }}
-            style={styles.bannerImage}
+          <Carousel
+            width={width}
+            height={width / 2}
+            data={list}
+            autoPlay={true}
+            pagingEnabled={pagingEnabled}
+            scrollAnimationDuration={1000}
+            renderItem={({item}) => (
+              <View>
+                <Image source={item.image} />
+              </View>
+            )}
           />
         </View>
         <View style={styles.servicesContainer}>
