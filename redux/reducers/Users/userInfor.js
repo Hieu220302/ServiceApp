@@ -41,7 +41,7 @@ export const fetchUserByUserName = userName => async dispatch => {
   try {
     dispatch(getUserStart());
     const data = await getUserByUserName(userName);
-    console.log('data User  in fetchUser reducer', data);
+    //console.log('data User  in fetchUser reducer', data);
 
     dispatch(getUsersuccess(data));
 

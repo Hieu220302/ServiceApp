@@ -14,9 +14,12 @@ import {groupService} from '../redux/reducers/groupService/groupServiceReducer';
 import {inforService} from '../redux/reducers/inforService/inforServiceReducer';
 import {useNavigation} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
+import {logout} from '../redux/reducers/Login/signinReducer';
 const HomeScreen = () => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataGroupService} = useSelector(state => state.groupService);
+  const {dataLogin} = useSelector(state => state.login);
+  // console.log(dataLogin);
   const dispatch = useDispatch();
   useEffect(() => {
     try {
@@ -45,16 +48,28 @@ const HomeScreen = () => {
       image: require('./image/3.jpg'),
     },
   ];
+
+  const handleLogOut = () => {
+    dispatch(logout());
+    navigation.navigate('Login');
+  };
   const [pagingEnabled, setPagingEnabled] = useState(true);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Xin chào bạn ngày mới tốt lành</Text>
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginButtonText}>Đăng nhập / Tạo tài khoản</Text>
-        </TouchableOpacity>
+        {!dataLogin?.id && (
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.loginButtonText}>Đăng nhập</Text>
+          </TouchableOpacity>
+        )}
+        {!!dataLogin?.id && (
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogOut}>
+            <Text style={styles.loginButtonText}>Đăng xuất</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <ScrollView>
         <View style={styles.bannerContainer}>

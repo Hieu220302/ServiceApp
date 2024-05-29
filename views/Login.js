@@ -17,17 +17,20 @@ const Login = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
-  const {data} = useSelector(state => state.login);
+  const {dataLogin} = useSelector(state => state.login);
   const handleLogin = () => {
     dispatch(loginUser(userName, password));
   };
   useEffect(() => {
-    if (!!data?.id) {
-      toastSuccess('Đăng nhập thành công', `Xin chào mừng bạn ${data.Name}`);
+    if (!!dataLogin?.id) {
+      toastSuccess(
+        'Đăng nhập thành công',
+        `Xin chào mừng bạn ${dataLogin.Name}`,
+      );
       navigation.navigate('Home');
     } else
       toastError('Lỗi đăng nhập', 'Bạn hãy kiểm tra lại tài khoản và mật khẩu');
-  }, [data]);
+  }, [dataLogin]);
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Log In</Text>

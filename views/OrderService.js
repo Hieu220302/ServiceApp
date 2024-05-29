@@ -12,8 +12,11 @@ import {
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import cashRegister from '../components/cashRegister';
 const OrderService = props => {
   const {dataInforService} = useSelector(state => state.inforService);
+  const {dataLogin} = useSelector(state => state.login);
   const dispatch = useDispatch();
   const [inforService, setInforService] = useState(() => {
     const idInforService = props.route.params.id;
@@ -22,7 +25,12 @@ const OrderService = props => {
   const [time, setTime] = useState(1);
   const navigation = useNavigation();
   const [quantity, setQuantity] = useState(1);
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState(dataLogin.Address);
+  const [date, setDate] = useState(new Date());
+  const [dataSelect, setDataSelect] = useState(new Date());
+  const [timeSelect, setTimeSelect] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [total, setTotal] = useState(0);
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
@@ -68,6 +76,28 @@ const OrderService = props => {
   const handleLocationChange = value => {
     setLocation(value);
   };
+
+  const onChangeTime = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setTimeSelect(selectedTime);
+    }
+  };
+
+  const formatTime = time => {
+    const hours = time.getHours().toString().padStart(2, '0');
+    const minutes = time.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const handleCashRegister = () => {
+    navigation.navigate('Home');
+  };
+
+  useEffect(() => {
+    setTotal(cashRegister(inforService.Price, quantity, time));
+  }, [time, quantity]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -78,12 +108,12 @@ const OrderService = props => {
       </View>
       <ScrollView style={styles.body}>
         <View>
-          <Text>Dịch vụ</Text>
-          <Text>{inforService.Type}</Text>
+          <Text style={styles.bodyTitle}>Dịch vụ</Text>
+          <Text style={styles.bodyLabel}>{inforService.Type}</Text>
         </View>
         {!!inforService.hasTime && (
           <View>
-            <Text>Thời lượng</Text>
+            <Text style={styles.bodyTitle}>Thời lượng</Text>
             <View style={styles.divTime}>
               <TouchableOpacity
                 style={styles.button}
@@ -106,7 +136,7 @@ const OrderService = props => {
         )}
         {!!inforService.hasQuantity && (
           <View>
-            <Text>Số lượng</Text>
+            <Text style={styles.bodyTitle}>Số lượng</Text>
             <View style={styles.divTime}>
               <TouchableOpacity
                 style={styles.button}
@@ -128,30 +158,80 @@ const OrderService = props => {
           </View>
         )}
         <View>
-          <Text>Địa chỉ</Text>
+          <Text style={styles.bodyTitle}>Địa chỉ làm việc</Text>
           <TextInput
             style={styles.inputLocation}
             value={location}
             onChangeText={handleLocationChange}
           />
         </View>
+        <View>
+          <Text style={styles.bodyTitle}>Thời gian làm việc</Text>
+          <View style={{marginLeft: 10}}>
+            <Text style={styles.bodyLabel}>Chọn ngày làm</Text>
+            <View style={styles.dateContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.dateContainer}>
+                {[...Array(30).keys()].map(i => {
+                  const day = new Date();
+                  day.setDate(date.getDate() + i);
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      style={[
+                        styles.dateBox,
+                        dataSelect.getDate() === day.getDate() &&
+                          styles.selectedDate,
+                      ]}
+                      onPress={() => setDataSelect(day)}>
+                      <Text style={styles.dateText}>
+                        {day
+                          .toLocaleDateString('vi-VN', {weekday: 'short'})
+                          .toUpperCase()}
+                      </Text>
+                      <Text style={styles.dateNumber}>{day.getDate()}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+            <View style={styles.section}>
+              <Text style={styles.bodyLabel}>Chọn giờ làm</Text>
+              <TouchableOpacity
+                style={styles.timeBox}
+                onPress={() => setShowTimePicker(true)}>
+                <Text style={styles.timeText}>{formatTime(timeSelect)}</Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+                <DateTimePicker
+                  testID="timePicker"
+                  value={timeSelect}
+                  mode="time"
+                  is24Hour={true}
+                  display="default"
+                  onChange={onChangeTime}
+                />
+              )}
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text style={styles.bodyTitle}>Ghi chú cho công việc</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Bạn có yêu cầu gì thêm, hãy nhập ở đây nhé"
+            multiline
+          />
+        </View>
       </ScrollView>
-      <View style={styles.footer}>
-        <FooterItem name="home" title="Trang chủ" page="Home" />
-      </View>
-    </View>
-  );
-};
 
-const FooterItem = ({name, title, page}) => {
-  const navigation = useNavigation();
-  return (
-    <TouchableOpacity
-      style={styles.footerItem}
-      onPress={() => navigation.navigate(page)}>
-      <Icons name={name} style={{fontSize: 20}} />
-      <Text style={styles.footerItemText}>{title}</Text>
-    </TouchableOpacity>
+      <TouchableOpacity style={styles.footer} onPress={handleCashRegister}>
+        <Text style={styles.priceText}>{total} VND</Text>
+        <Text style={styles.nextButtonText}>Đặt Đơn</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -170,38 +250,52 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 260,
+    marginRight: 240,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 25,
     color: '#fff',
     fontWeight: 'bold',
   },
   body: {
-    margin: 10,
+    margin: 20,
+  },
+  bodyTitle: {
+    marginVertical: 10,
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  bodyLabel: {
+    marginVertical: 10,
+    fontSize: 20,
+    marginRight: 10,
   },
   divTime: {
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 10,
     borderWidth: 1,
     borderColor: '#ccc',
+    justifyContent: 'space-between',
   },
   button: {
-    width: 40,
+    width: 50,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
+    borderRadius: 10,
   },
   buttonText: {
     fontSize: 20,
     fontWeight: 'bold',
   },
   input: {
-    width: '87%',
     padding: 0,
+    fontSize: 15,
     textAlign: 'center',
     marginHorizontal: 5,
   },
@@ -209,22 +303,76 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 10,
     paddingVertical: 0,
-    marginVertical: 10,
+    fontSize: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    height: 40,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+  },
+  dateBox: {
+    alignItems: 'center',
+    padding: 10,
+    width: 50,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: '#ddd',
+  selectedDate: {
+    backgroundColor: '#ff9800',
   },
-  footerItem: {
+  dateText: {
+    fontSize: 12,
+  },
+  dateNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  section: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  timeBox: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
     alignItems: 'center',
   },
-  footerItemText: {
-    fontSize: 14,
+  timeText: {
+    fontSize: 16,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    margin: 20,
+    backgroundColor: '#4CAF50',
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
 

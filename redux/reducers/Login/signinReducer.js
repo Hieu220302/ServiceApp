@@ -3,7 +3,7 @@ import loginPage from '../../../api/Login/loginApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const initialState = {
-  data: [],
+  dataLogin: [],
   isLoading: false,
   error: null,
 };
@@ -18,14 +18,14 @@ const loginSlice = createSlice({
     },
     loginSuccess: (state, action) => {
       state.isLoading = false;
-      state.data = action.payload;
+      state.dataLogin = action.payload;
     },
     loginFailure: (state, action) => {
       state.error = action.payload;
       state.isLoading = false;
     },
     logout: state => {
-      state.data = null;
+      state.dataLogin = null;
       state.isLoading = false;
       state.error = null;
     },
