@@ -60,14 +60,14 @@ const HomeScreen = () => {
         <View style={styles.bannerContainer}>
           <Carousel
             width={width}
-            height={width / 2}
+            height={260}
             data={list}
             autoPlay={true}
             pagingEnabled={pagingEnabled}
-            scrollAnimationDuration={1000}
+            scrollAnimationDuration={3000}
             renderItem={({item}) => (
               <View>
-                <Image source={item.image} />
+                <Image style={styles.bannerImage} source={item.image} />
               </View>
             )}
           />
@@ -152,11 +152,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bannerContainer: {
-    margin: 16,
+    marginTop: 10,
   },
   bannerImage: {
     width: '100%',
-    height: 150,
+    height: 260,
     borderRadius: 10,
   },
   servicesContainer: {
@@ -164,6 +164,7 @@ const styles = StyleSheet.create({
   },
   servicesTitle: {
     fontSize: 18,
+    fontWeight: 'bold',
     marginBottom: 10,
   },
   servicesList: {

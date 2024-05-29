@@ -39,7 +39,7 @@ export const loginUser = (username, password) => async (dispatch, getState) => {
     dispatch(loginRequest());
 
     const data = await loginPage(username, password);
-    dispatch(loginSuccess(data));
+    dispatch(loginSuccess(data[0]));
     return data;
   } catch (error) {
     await AsyncStorage.removeItem('persist:root');

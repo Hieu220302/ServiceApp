@@ -20,6 +20,7 @@ export const toastConfig = {
   error: props => (
     <ErrorToast
       {...props}
+      contentContainerStyle={{paddingHorizontal: 15}}
       text1Style={{
         color: 'red',
         fontSize: 17,
@@ -42,7 +43,7 @@ export function toastError(text1, text2, time = 5000) {
     visibilityTime: time,
   });
 }
-export function toastsuccess(text1, text2, time = 3000) {
+export function toastSuccess(text1, text2, time = 3000) {
   Toast.show({
     type: 'success',
     text1: text1,

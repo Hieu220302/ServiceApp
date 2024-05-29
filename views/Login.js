@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,25 +7,35 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-
+import {useDispatch, useSelector} from 'react-redux';
+import {loginUser} from '../redux/reducers/Login/signinReducer';
+import Toast from 'react-native-toast-message';
+import {toastSuccess, toastError, toastConfig} from '../components/toastCustom';
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [userName, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const [error, setError] = useState(false);
+  const {data} = useSelector(state => state.login);
   const handleLogin = () => {
-    // Xử lý đăng nhập
-    navigation.navigate('Home');
-    console.log('Email:', email);
-    console.log('Password:', password);
+    dispatch(loginUser(userName, password));
   };
-
+  useEffect(() => {
+    if (!!data?.id) {
+      toastSuccess('Đăng nhập thành công', `Xin chào mừng bạn ${data.Name}`);
+      navigation.navigate('Home');
+    } else
+      toastError('Lỗi đăng nhập', 'Bạn hãy kiểm tra lại tài khoản và mật khẩu');
+  }, [data]);
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Log In</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Username"
         onChangeText={text => setEmail(text)}
+        autoFocus={true}
       />
       <TextInput
         style={styles.input}
@@ -36,7 +46,7 @@ const Login = () => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
-      <Text style={styles.forgotPassword}>Forgot your password?</Text>
+      {/* <Text style={styles.forgotPassword}>Forgot your password?</Text> */}
     </View>
   );
 };
