@@ -6,6 +6,7 @@ import Home from '../views/HomeScreen';
 import OrderService from '../views/OrderService';
 import Toast from 'react-native-toast-message';
 import {toastConfig} from '../components/toastCustom';
+import Orders from '../views/Orders';
 const Stack = createNativeStackNavigator();
 const App = () => {
   return (
@@ -24,6 +25,11 @@ const App = () => {
         <Stack.Screen
           name="Order"
           component={OrderService}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Orders"
+          component={Orders}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

@@ -20,12 +20,12 @@ const OrderService = props => {
   const dispatch = useDispatch();
   const [inforService, setInforService] = useState(() => {
     const idInforService = props.route.params.id;
-    return dataInforService.find(item => item.id === idInforService);
+    return dataInforService?.find(item => item.id === idInforService);
   });
   const [time, setTime] = useState(1);
   const navigation = useNavigation();
   const [quantity, setQuantity] = useState(1);
-  const [location, setLocation] = useState(dataLogin.Address);
+  const [location, setLocation] = useState(dataLogin?.Address);
   const [date, setDate] = useState(new Date());
   const [dataSelect, setDataSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
@@ -91,7 +91,7 @@ const OrderService = props => {
   };
 
   const handleCashRegister = () => {
-    navigation.navigate('Home');
+    navigation.navigate('Orders');
   };
 
   useEffect(() => {

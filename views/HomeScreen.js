@@ -51,7 +51,7 @@ const HomeScreen = () => {
 
   const handleLogOut = () => {
     dispatch(logout());
-    navigation.navigate('Login');
+    // navigation.navigate('Login');
   };
   const [pagingEnabled, setPagingEnabled] = useState(true);
   return (
@@ -93,7 +93,7 @@ const HomeScreen = () => {
               <View key={index}>
                 <Text style={styles.servicesTitle}>{groupService.Name}</Text>
                 <View style={styles.servicesList}>
-                  {dataInforService.map((inforService, index) => {
+                  {dataInforService?.map((inforService, index) => {
                     if (inforService.id_group === groupService.id)
                       return (
                         <ServiceItem
@@ -111,7 +111,7 @@ const HomeScreen = () => {
       </ScrollView>
       <View style={styles.footer}>
         <FooterItem name="home" title="Trang chủ" page="Home" />
-        <FooterItem name="tags" title="Hoạt động" page="Login" />
+        <FooterItem name="shoppingcart" title="Hoạt động" page="Orders" />
         {/* <FooterItem name="mail" title="Tin nhắn" /> */}
         <FooterItem name="user" title="Tài khoản" page="Login" />
       </View>
