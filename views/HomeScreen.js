@@ -15,11 +15,13 @@ import {inforService} from '../redux/reducers/inforService/inforServiceReducer';
 import {useNavigation} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import {logout} from '../redux/reducers/Login/signinReducer';
+import Footer from '../components/footer';
+import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
+
 const HomeScreen = () => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataGroupService} = useSelector(state => state.groupService);
   const {dataLogin} = useSelector(state => state.login);
-  // console.log(dataLogin);
   const dispatch = useDispatch();
   useEffect(() => {
     try {
@@ -51,7 +53,6 @@ const HomeScreen = () => {
 
   const handleLogOut = () => {
     dispatch(logout());
-    // navigation.navigate('Login');
   };
   const [pagingEnabled, setPagingEnabled] = useState(true);
   return (
@@ -88,7 +89,7 @@ const HomeScreen = () => {
           />
         </View>
         <View style={styles.servicesContainer}>
-          {dataGroupService.map((groupService, index) => {
+          {dataGroupService?.map((groupService, index) => {
             return (
               <View key={index}>
                 <Text style={styles.servicesTitle}>{groupService.Name}</Text>
@@ -109,12 +110,7 @@ const HomeScreen = () => {
           })}
         </View>
       </ScrollView>
-      <View style={styles.footer}>
-        <FooterItem name="home" title="Trang chủ" page="Home" />
-        <FooterItem name="shoppingcart" title="Hoạt động" page="Orders" />
-        {/* <FooterItem name="mail" title="Tin nhắn" /> */}
-        <FooterItem name="user" title="Tài khoản" page="Login" />
-      </View>
+      <Footer />
     </View>
   );
 };
@@ -126,18 +122,6 @@ const ServiceItem = ({title, id}) => {
       style={styles.serviceItem}
       onPress={() => navigation.navigate('Order', {id: id})}>
       <Text style={styles.serviceTitle}>{title}</Text>
-    </TouchableOpacity>
-  );
-};
-
-const FooterItem = ({name, title, page}) => {
-  const navigation = useNavigation();
-  return (
-    <TouchableOpacity
-      style={styles.footerItem}
-      onPress={() => navigation.navigate(page)}>
-      <Icons name={name} style={{fontSize: 20}} />
-      <Text style={styles.footerItemText}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -154,6 +138,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 18,
+    fontWeight: 'bold',
     color: '#fff',
   },
   loginButton: {
@@ -178,9 +163,9 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   servicesTitle: {
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   servicesList: {
     flexDirection: 'row',
@@ -192,28 +177,16 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f5f5f5',
     borderRadius: 5,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   serviceTitle: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   newBadge: {
     color: 'red',
     fontSize: 12,
     fontWeight: 'bold',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-  },
-  footerItem: {
-    alignItems: 'center',
-  },
-  footerItemText: {
-    fontSize: 14,
   },
 });
 

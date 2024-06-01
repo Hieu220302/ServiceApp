@@ -1,10 +1,16 @@
+import React from 'react';
 import Toast, {BaseToast, ErrorToast} from 'react-native-toast-message';
 
 export const toastConfig = {
   success: props => (
     <BaseToast
       {...props}
-      style={{borderLeftColor: 'pink'}}
+      style={{
+        borderLeftColor: 'pink',
+        top: 10,
+        right: 10,
+        position: 'absolute',
+      }}
       contentContainerStyle={{paddingHorizontal: 15}}
       text1Style={{
         color: 'green',
@@ -20,6 +26,7 @@ export const toastConfig = {
   error: props => (
     <ErrorToast
       {...props}
+      style={{top: 10, right: 10, position: 'absolute'}}
       contentContainerStyle={{paddingHorizontal: 15}}
       text1Style={{
         color: 'red',

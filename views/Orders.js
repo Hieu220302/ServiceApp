@@ -1,70 +1,42 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import Icons from 'react-native-vector-icons/AntDesign';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {useSelector} from 'react-redux';
+import Footer from '../components/footer';
 
 const Orders = () => {
   const navigation = useNavigation();
-  const listTab = [
-    {id: 1, name: 'Chờ làm'},
-    {id: 2, name: 'Lặp lại'},
-    {id: 3, name: 'Theo gói'},
-  ];
-  const [tabSelect, setTabSelect] = useState(1);
+  const {dataLogin} = useSelector(state => state.login);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Đơn công việc</Text>
       </View>
-      <View style={styles.tabBar}>
-        {listTab.map(tab => {
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.tab, tab.id === tabSelect && styles.activeTab]}
-              onPress={() => setTabSelect(tab.id)}>
-              <Text
-                style={[
-                  styles.tabText,
-                  tab.id === tabSelect && styles.tabSelect,
-                ]}>
-                {tab.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
 
-      <View style={styles.content}>
-        <Text style={styles.description}>
-          Công việc bạn đăng lên sẽ được hiển thị ở đây để bạn dễ dàng thao tác
-          và quản lý. Bạn có thể xem lại lịch sử những công việc đã được hoàn
-          thành ở mục Lịch sử nằm ở góc trên bên phải
-        </Text>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Đăng nhập ngay</Text>
-        </TouchableOpacity>
-      </View>
+      {!dataLogin?.id && (
+        <View style={styles.content}>
+          <Text style={styles.description}>
+            Công việc bạn đăng lên sẽ được hiển thị ở đây để bạn dễ dàng thao
+            tác và quản lý.
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.buttonText}>Đăng nhập ngay</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {dataLogin?.id && (
+        <View style={styles.content}>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Đăng nhập ngay</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      <View style={styles.footer}>
-        <FooterItem name="home" title="Trang chủ" page="Home" />
-        <FooterItem name="shoppingcart" title="Hoạt động" page="Orders" />
-        {/* <FooterItem name="mail" title="Tin nhắn" /> */}
-        <FooterItem name="user" title="Tài khoản" page="Login" />
-      </View>
+      <Footer />
     </View>
-  );
-};
-
-const FooterItem = ({name, title, page}) => {
-  const navigation = useNavigation();
-  return (
-    <TouchableOpacity
-      style={styles.footerItem}
-      onPress={() => navigation.navigate(page)}>
-      <Icons name={name} style={{fontSize: 20}} />
-      <Text style={styles.footerItemText}>{title}</Text>
-    </TouchableOpacity>
   );
 };
 
@@ -84,29 +56,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     color: '#fff',
     fontWeight: 'bold',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  tab: {
-    color: '#999',
-    fontWeight: 'bold',
-    padding: 10,
-  },
-  activeTab: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ff8500',
-  },
-  tabText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  tabSelect: {
-    color: '#ff8500',
   },
   content: {
     flex: 1,
@@ -132,7 +81,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize:18,
+    fontSize: 18,
   },
   footer: {
     flexDirection: 'row',
