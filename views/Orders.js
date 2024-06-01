@@ -1,13 +1,21 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Footer from '../components/footer';
+import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
 
 const Orders = () => {
   const navigation = useNavigation();
   const {dataLogin} = useSelector(state => state.login);
-
+  const dispatch = useDispatch();
+  const {dataOrderServiceByIdUser} = useSelector(
+    state => state.orderServiceByIdUser,
+  );
+  useEffect(() => {
+    if (dataLogin?.id) dispatch(orderServiceByIdUser(dataLogin?.id));
+    console.log(dataOrderServiceByIdUser);
+  }, []);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -28,14 +36,41 @@ const Orders = () => {
         </View>
       )}
       {dataLogin?.id && (
-        <View style={styles.content}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Đăng nhập ngay</Text>
-          </TouchableOpacity>
+        <View style={styles.body}>
+          {dataOrderServiceByIdUser?.map((inforOrder, index) => (
+            <InforOrder inforOrder={inforOrder} index={index} />
+          ))}
         </View>
       )}
 
       <Footer />
+    </View>
+  );
+};
+
+const InforOrder = ({inforOrder, index}) => {
+  return (
+    <View key={index} style={styles.inforOrder}>
+      <View>
+        <Text>Công việc:</Text>
+        <Text>Địa chỉ: {inforOrder?.Address}</Text>
+        <Text>Thời điểm: </Text>
+        <Text>Trạng thái:</Text>
+      </View>
+      <View>
+        <TouchableOpacity>
+          <Text>Chi tiết</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text>Hủy đơn</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text>Xác nhận hoàn thành</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text>Đặt lại</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -63,11 +98,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  image: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
-  },
   description: {
     textAlign: 'center',
     marginBottom: 20,
@@ -83,18 +113,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
   },
-  footer: {
+  body: {flex: 1},
+  inforOrder: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: '#f26522',
     padding: 10,
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-  },
-  footerItem: {
-    alignItems: 'center',
-  },
-  footerItemText: {
-    fontSize: 14,
   },
 });
 
