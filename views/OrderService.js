@@ -8,6 +8,7 @@ import {
   Image,
   TextInput,
   Button,
+  Switch,
 } from 'react-native';
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
@@ -16,6 +17,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import cashRegister from '../components/cashRegister';
 import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
+import convertToVietnamTime from '../components/convertToVietnamTime';
+
 const OrderService = props => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataLogin} = useSelector(state => state.login);
@@ -29,11 +32,15 @@ const OrderService = props => {
   const [quantity, setQuantity] = useState(1);
   const [location, setLocation] = useState(dataLogin?.Address || '');
   const [date, setDate] = useState(new Date());
-  const [dataSelect, setDataSelect] = useState(new Date());
+  const [dateSelect, setDateSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
+
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [total, setTotal] = useState(0);
   const [note, setNote] = useState('');
+  const [isServicePacks, setIsServicePacks] = useState(false);
+  const toggleSwitch = () => setIsServicePacks(previousState => !previousState);
+
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
@@ -93,15 +100,33 @@ const OrderService = props => {
     return `${hours}:${minutes}`;
   };
 
-  const formatDate = date => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0, nên cần +1
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+  const formatDate = (dateSelect, timeSelect) => {
+    const year = dateSelect.getFullYear();
+    const month = String(dateSelect.getMonth() + 1).padStart(2, '0');
+    const day = String(dateSelect.getDate()).padStart(2, '0');
+    const hours = String(timeSelect.getHours()).padStart(2, '0');
+    const minutes = String(timeSelect.getMinutes()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
+  const formatTimestamp = timestamp => {
+    const date = new Date(timestamp);
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const year = String(date.getUTCFullYear()).slice(-2);
+
+    return `${day}${month}${year}`;
+  };
+
+  const compareTime = dateTimeString => {
+    const [datePart, timePart] = dateTimeString.split(' ');
+
+    const [hours, minutes] = timePart.split(':').map(Number);
+
+    const isAfterNoon = hours > 12 || (hours === 12 && minutes > 0);
+
+    return isAfterNoon ? 'CT' : 'CS';
   };
 
   const handleCashRegister = async () => {
@@ -114,17 +139,22 @@ const OrderService = props => {
       let dataQuantity = 0;
       if (inforService.hasTime) duration = time;
       if (inforService.hasQuantity) dataQuantity = quantity;
+      const code = `${compareTime(
+        convertToVietnamTime(timeSelect),
+      )}_${formatTimestamp(dateSelect)}`;
 
       const response = await postOrderService(
         dataLogin?.id,
         location,
-        formatDate(timeSelect),
+        formatDate(dateSelect, timeSelect),
         duration,
         dataQuantity,
         inforService.id,
         1,
         note,
         parseInt(total.replace(/,/g, ''), 10),
+        code,
+        isServicePacks,
       );
       if (response?.errno) {
         toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
@@ -137,8 +167,8 @@ const OrderService = props => {
   };
 
   useEffect(() => {
-    setTotal(cashRegister(inforService.Price, quantity, time));
-  }, [time, quantity]);
+    setTotal(cashRegister(inforService.Price, quantity, time, isServicePacks));
+  }, [time, quantity, isServicePacks]);
 
   return (
     <View style={styles.container}>
@@ -224,10 +254,10 @@ const OrderService = props => {
                       key={i}
                       style={[
                         styles.dateBox,
-                        dataSelect.getDate() === day.getDate() &&
+                        dateSelect.getDate() === day.getDate() &&
                           styles.selectedDate,
                       ]}
-                      onPress={() => setDataSelect(day)}>
+                      onPress={() => setDateSelect(day)}>
                       <Text style={styles.dateText}>
                         {day
                           .toLocaleDateString('vi-VN', {weekday: 'short'})
@@ -258,6 +288,16 @@ const OrderService = props => {
               )}
             </View>
           </View>
+        </View>
+        <View style={styles.bodyPack}>
+          <Text style={styles.bodyTitle}>Đăng kí theo tháng</Text>
+          <Switch
+            trackColor={{false: '#767577', true: '#f26522'}}
+            thumbColor={isServicePacks ? '#f5dd4b' : '#f4f3f4'}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitch}
+            value={isServicePacks}
+          />
         </View>
         <View>
           <Text style={styles.bodyTitle}>Ghi chú cho công việc</Text>
@@ -303,6 +343,10 @@ const styles = StyleSheet.create({
   },
   body: {
     margin: 20,
+  },
+  bodyPack: {
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   bodyTitle: {
     marginVertical: 10,

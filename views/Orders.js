@@ -4,6 +4,10 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import Footer from '../components/footer';
 import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
+import convertToVietnamTime from '../components/convertToVietnamTime';
+import Icons from 'react-native-vector-icons/AntDesign';
+import {inforStaff} from '../redux/reducers/staff/staffByCustomer';
+import changeStateOrderService from '../api/orderService/changeStateOrderService';
 
 const Orders = () => {
   const navigation = useNavigation();
@@ -12,10 +16,14 @@ const Orders = () => {
   const {dataOrderServiceByIdUser} = useSelector(
     state => state.orderServiceByIdUser,
   );
+  const [changeState, setChangeState] = useState(false);
   useEffect(() => {
-    if (dataLogin?.id) dispatch(orderServiceByIdUser(dataLogin?.id));
-    console.log(dataOrderServiceByIdUser);
-  }, []);
+    if (dataLogin?.id) {
+      dispatch(orderServiceByIdUser(dataLogin?.id));
+      dispatch(inforStaff());
+    }
+  }, [changeState]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -38,8 +46,20 @@ const Orders = () => {
       {dataLogin?.id && (
         <View style={styles.body}>
           {dataOrderServiceByIdUser?.map((inforOrder, index) => (
-            <InforOrder inforOrder={inforOrder} index={index} />
+            <InforOrder
+              inforOrder={inforOrder}
+              key={index}
+              changeState={changeState}
+              setChangeState={setChangeState}
+            />
           ))}
+          {dataOrderServiceByIdUser.length === 0 && (
+            <View style={styles.content}>
+              <Text style={styles.description}>
+                Bạn hãy bắt đầu một đơn mới để có thể hiện thị ở đây
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
@@ -48,27 +68,103 @@ const Orders = () => {
   );
 };
 
-const InforOrder = ({inforOrder, index}) => {
+const changeStateOrder = async (id, State, changeState, setChangeState) => {
+  try {
+    const response = await changeStateOrderService(id, State);
+    setChangeState(!changeState);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const ItemButton = ({id, state, changeState, setChangeState}) => {
+  if (state === 1) {
+    return (
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => changeStateOrder(id, 0, changeState, setChangeState)}>
+        <Text style={styles.buttonText}>Hủy đơn</Text>
+      </TouchableOpacity>
+    );
+  } else if (state === 2) {
+    return (
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => changeStateOrder(id, 3, changeState, setChangeState)}>
+        <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
+      </TouchableOpacity>
+    );
+  } else {
+    return (
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>Đặt lại</Text>
+      </TouchableOpacity>
+    );
+  }
+};
+
+const InforOrder = ({inforOrder, changeState, setChangeState}) => {
+  const {dataInforService} = useSelector(state => state.inforService);
+  const job = dataInforService.find(
+    infor => infor.id === inforOrder.id_service,
+  );
+  const {dataInforStaff} = useSelector(state => state.inforStaff);
+  const time = convertToVietnamTime(inforOrder.Time);
+  const listState = [
+    'Đơn đã hủy',
+    'Chờ xác nhận',
+    'Chờ xác nhận hoàn thành',
+    'Đã hoàn thành',
+  ];
+  const [isExpand, setIsExpand] = useState(false);
+  const staff = dataInforStaff?.find(staff => staff.id === inforOrder.id_staff);
   return (
-    <View key={index} style={styles.inforOrder}>
+    <View style={styles.inforOrder}>
       <View>
-        <Text>Công việc:</Text>
-        <Text>Địa chỉ: {inforOrder?.Address}</Text>
-        <Text>Thời điểm: </Text>
-        <Text>Trạng thái:</Text>
+        <Text style={styles.inforText}>Công việc: {job?.Type}</Text>
+        <Text style={styles.inforText}>Địa chỉ: {inforOrder?.Address}</Text>
+        <Text style={styles.inforText}>Thời điểm: {time}</Text>
+        {isExpand && (
+          <>
+            {!!inforOrder?.Duration && (
+              <Text style={styles.inforText}>
+                Thời lượng: {inforOrder?.Duration} giờ
+              </Text>
+            )}
+            {!!inforOrder?.Quantity && (
+              <Text style={styles.inforText}>
+                Số Lượng: {inforOrder?.Quantity} máy
+              </Text>
+            )}
+            {!!staff && (
+              <>
+                <Text style={styles.inforText}>
+                  Người nhận công việc: {staff?.Name}
+                </Text>
+                <Text style={styles.inforText}>
+                  Số liên hệ: {staff?.Phone_number}
+                </Text>
+              </>
+            )}
+            <Text style={styles.inforText}>
+              Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
+            </Text>
+          </>
+        )}
+        <Text style={styles.inforText}>
+          Trạng thái: {listState[inforOrder?.State]}
+        </Text>
       </View>
-      <View>
-        <TouchableOpacity>
-          <Text>Chi tiết</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text>Hủy đơn</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text>Xác nhận hoàn thành</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text>Đặt lại</Text>
+      <View style={styles.inforOrderRight}>
+        <ItemButton
+          id={inforOrder?.id}
+          state={inforOrder?.State}
+          changeState={changeState}
+          setChangeState={setChangeState}
+        />
+        <TouchableOpacity onPress={() => setIsExpand(!isExpand)}>
+          {isExpand && <Icons name="up" style={styles.iconExpand} />}
+          {!isExpand && <Icons name="down" style={styles.iconExpand} />}
         </TouchableOpacity>
       </View>
     </View>
@@ -105,21 +201,39 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#00a800',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 125,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    textAlign: 'center',
+    fontWeight: '800',
   },
   body: {flex: 1},
   inforOrder: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
+    borderBottomWidth: 3,
     borderColor: '#f26522',
     padding: 10,
+  },
+  inforText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  inforOrderRight: {
+    justifyContent: 'space-between',
+  },
+  iconExpand: {
+    position: 'absolute',
+    fontSize: 30,
+    bottom: 0,
+    right: 0,
   },
 });
 

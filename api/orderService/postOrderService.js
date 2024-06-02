@@ -11,6 +11,8 @@ const postOrderService = async (
   State,
   Notes,
   Total,
+  code,
+  isServicePacks,
 ) => {
   try {
     const response = await axios.post(urlAPI + 'orderService/postOrder', {
@@ -23,8 +25,9 @@ const postOrderService = async (
       State: State,
       Notes: Notes,
       Total: Total,
+      code: code,
+      isServicePacks: isServicePacks ? 1:0,
     });
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.log('error sign in' + error.message);
