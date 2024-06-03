@@ -1,6 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import Footer from '../components/footer';
 import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
@@ -8,6 +14,7 @@ import convertToVietnamTime from '../components/convertToVietnamTime';
 import Icons from 'react-native-vector-icons/AntDesign';
 import {inforStaff} from '../redux/reducers/staff/staffByCustomer';
 import changeStateOrderService from '../api/orderService/changeStateOrderService';
+import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 
 const Orders = () => {
   const navigation = useNavigation();
@@ -21,8 +28,32 @@ const Orders = () => {
     if (dataLogin?.id) {
       dispatch(orderServiceByIdUser(dataLogin?.id));
       dispatch(inforStaff());
+      if (changeState === true) setChangeState(false);
     }
   }, [changeState]);
+
+  useEffect(() => {
+    if (dataLogin?.id) {
+      setCount(
+        dataOrderServiceByIdUser?.reduce((count, order) => {
+          if (order.State > 0) {
+            return count + 1;
+          } else {
+            return count;
+          }
+        }, 0),
+      );
+    }
+  }, [dataOrderServiceByIdUser]);
+  const [count, setCount] = useState(() =>
+    dataOrderServiceByIdUser?.reduce((count, order) => {
+      if (order.State > 0) {
+        return count + 1;
+      } else {
+        return count;
+      }
+    }, 0),
+  );
 
   return (
     <View style={styles.container}>
@@ -44,23 +75,34 @@ const Orders = () => {
         </View>
       )}
       {dataLogin?.id && (
-        <View style={styles.body}>
-          {dataOrderServiceByIdUser?.map((inforOrder, index) => (
-            <InforOrder
-              inforOrder={inforOrder}
-              key={index}
-              changeState={changeState}
-              setChangeState={setChangeState}
-            />
-          ))}
-          {dataOrderServiceByIdUser.length === 0 && (
+        <>
+          {count !== 0 && (
+            <View style={styles.body}>
+              <ScrollView>
+                {dataOrderServiceByIdUser?.map((inforOrder, index) => {
+                  if (!!inforOrder?.State)
+                    return (
+                      <InforOrder
+                        inforOrder={inforOrder}
+                        key={index}
+                        changeState={changeState}
+                        setChangeState={setChangeState}
+                      />
+                    );
+                  else return <View key={index}></View>;
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          {count === 0 && (
             <View style={styles.content}>
               <Text style={styles.description}>
                 Bạn hãy bắt đầu một đơn mới để có thể hiện thị ở đây
               </Text>
             </View>
           )}
-        </View>
+        </>
       )}
 
       <Footer />
@@ -68,43 +110,70 @@ const Orders = () => {
   );
 };
 
-const changeStateOrder = async (id, State, changeState, setChangeState) => {
+const changeStateOrder = async (
+  id,
+  State,
+  changeState,
+  setChangeState,
+  days,
+) => {
   try {
-    const response = await changeStateOrderService(id, State);
+    if (State === 4) {
+      days = days - 1;
+      if (days !== 0) State = 3;
+    }
+    const response = await changeStateOrderService(id, State, days);
     setChangeState(!changeState);
   } catch (error) {
     console.log(error);
   }
 };
 
-const ItemButton = ({id, state, changeState, setChangeState}) => {
-  if (state === 1) {
+const ItemButton = ({id, state, changeState, setChangeState, days}) => {
+  if (state === 2) {
     return (
       <TouchableOpacity
         style={styles.button}
-        onPress={() => changeStateOrder(id, 0, changeState, setChangeState)}>
+        onPress={() =>
+          changeStateOrder(id, 1, changeState, setChangeState, days)
+        }>
         <Text style={styles.buttonText}>Hủy đơn</Text>
       </TouchableOpacity>
     );
-  } else if (state === 2) {
+  } else if (state === 3) {
     return (
       <TouchableOpacity
         style={styles.button}
-        onPress={() => changeStateOrder(id, 3, changeState, setChangeState)}>
-        <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
+        onPress={() =>
+          changeStateOrder(id, 4, changeState, setChangeState, days)
+        }>
+        <Text style={styles.buttonText}>
+          Xác nhận hoàn thành công việc hôm nay
+        </Text>
       </TouchableOpacity>
     );
   } else {
     return (
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Đặt lại</Text>
-      </TouchableOpacity>
+      <View style={styles.groupButton}>
+        <TouchableOpacity style={[styles.button, {marginBottom: 10}]}>
+          <Text style={styles.buttonText}>Đặt lại</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            changeStateOrder(id, 0, changeState, setChangeState, days)
+          }>
+          <Text style={styles.buttonText}>Xóa</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 };
 
 const InforOrder = ({inforOrder, changeState, setChangeState}) => {
   const {dataInforService} = useSelector(state => state.inforService);
+  const {dataServicePackage} = useSelector(state => state.servicePackage);
+  const dispatch = useDispatch();
   const job = dataInforService.find(
     infor => infor.id === inforOrder.id_service,
   );
@@ -116,11 +185,17 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
     'Chờ xác nhận hoàn thành',
     'Đã hoàn thành',
   ];
+  useEffect(() => {
+    dispatch(servicePackage());
+  }, []);
+  const namePackage =
+    dataServicePackage.find(pack => pack.id === inforOrder.isServicePacks)
+      ?.Name || 'Không đăng ký gói dịch vụ';
   const [isExpand, setIsExpand] = useState(false);
   const staff = dataInforStaff?.find(staff => staff.id === inforOrder.id_staff);
   return (
     <View style={styles.inforOrder}>
-      <View>
+      <View style={styles.inforOrderLeft}>
         <Text style={styles.inforText}>Công việc: {job?.Type}</Text>
         <Text style={styles.inforText}>Địa chỉ: {inforOrder?.Address}</Text>
         <Text style={styles.inforText}>Thời điểm: {time}</Text>
@@ -147,12 +222,19 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
               </>
             )}
             <Text style={styles.inforText}>
+              Số ngày làm còn lại: {inforOrder?.days} ngày
+            </Text>
+            <Text style={styles.inforText}>
               Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
             </Text>
+            <Text style={styles.inforText}>
+              Ghi chú: {inforOrder?.Notes || 'Chưa có ghi chú'}
+            </Text>
+            <Text style={styles.inforText}>Gói dịch vụ: {namePackage}</Text>
           </>
         )}
         <Text style={styles.inforText}>
-          Trạng thái: {listState[inforOrder?.State]}
+          Trạng thái: {listState[inforOrder?.State - 1]}
         </Text>
       </View>
       <View style={styles.inforOrderRight}>
@@ -161,6 +243,7 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
           state={inforOrder?.State}
           changeState={changeState}
           setChangeState={setChangeState}
+          days={inforOrder?.days}
         />
         <TouchableOpacity onPress={() => setIsExpand(!isExpand)}>
           {isExpand && <Icons name="up" style={styles.iconExpand} />}
@@ -199,6 +282,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 18,
   },
+  groupButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   button: {
     backgroundColor: '#00a800',
     paddingVertical: 5,
@@ -207,6 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 125,
+    marginBottom: 50,
   },
   buttonText: {
     color: '#fff',
@@ -225,6 +313,10 @@ const styles = StyleSheet.create({
   inforText: {
     fontSize: 18,
     fontWeight: '700',
+    width: 500,
+  },
+  inforOrderLeft: {
+    justifyContent: 'center',
   },
   inforOrderRight: {
     justifyContent: 'space-between',

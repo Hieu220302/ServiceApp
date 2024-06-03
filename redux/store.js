@@ -11,12 +11,14 @@ import groupService from './reducers/groupService/groupServiceReducer';
 import inforService from './reducers/inforService/inforServiceReducer';
 import orderServiceByIdUser from './reducers/orderService/orderServiceByIdUser';
 import inforStaff from './reducers/staff/staffByCustomer';
+import servicePackage from './reducers/servicePackage/servicePackage';
 const rootReducer = combineReducers({
   login: loginSlice,
   groupService: groupService,
   inforService: inforService,
   orderServiceByIdUser: orderServiceByIdUser,
   inforStaff: inforStaff,
+  servicePackage: servicePackage,
 });
 
 const persistConfig = {

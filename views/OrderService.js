@@ -18,9 +18,11 @@ import cashRegister from '../components/cashRegister';
 import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
+import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 
 const OrderService = props => {
   const {dataInforService} = useSelector(state => state.inforService);
+  const {dataServicePackage} = useSelector(state => state.servicePackage);
   const {dataLogin} = useSelector(state => state.login);
   const dispatch = useDispatch();
   const [inforService, setInforService] = useState(() => {
@@ -34,12 +36,11 @@ const OrderService = props => {
   const [date, setDate] = useState(new Date());
   const [dateSelect, setDateSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
-
+  const [days, setDays] = useState(1);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [total, setTotal] = useState(0);
   const [note, setNote] = useState('');
-  const [isServicePacks, setIsServicePacks] = useState(false);
-  const toggleSwitch = () => setIsServicePacks(previousState => !previousState);
+  const [isServicePacks, setIsServicePacks] = useState(0);
 
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
@@ -150,11 +151,12 @@ const OrderService = props => {
         duration,
         dataQuantity,
         inforService.id,
-        1,
+        2,
         note,
         parseInt(total.replace(/,/g, ''), 10),
         code,
         isServicePacks,
+        days,
       );
       if (response?.errno) {
         toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
@@ -166,10 +168,39 @@ const OrderService = props => {
     }
   };
 
-  useEffect(() => {
-    setTotal(cashRegister(inforService.Price, quantity, time, isServicePacks));
-  }, [time, quantity, isServicePacks]);
+  const ServicePackage = ({id}) => {
+    const name = dataServicePackage?.find(pack => pack.id === id)?.Name;
+    return (
+      <View style={styles.bodyPack}>
+        <Text style={styles.bodyTitle}>{name}</Text>
+        <Switch
+          trackColor={{false: '#767577', true: '#f26522'}}
+          thumbColor="#f4f3f4"
+          ios_backgroundColor="#3e3e3e"
+          onValueChange={() =>
+            setIsServicePacks(prevId => (prevId === id ? 0 : id))
+          }
+          value={isServicePacks === id}
+        />
+      </View>
+    );
+  };
 
+  useEffect(() => {
+    const {days, totalFunds} = cashRegister(
+      inforService.Price,
+      quantity,
+      time,
+      isServicePacks,
+      dateSelect,
+    );
+    setTotal(totalFunds);
+    setDays(days);
+  }, [time, quantity, isServicePacks, dateSelect]);
+  const servicePacks = inforService?.isServicePacks.split(',')?.map(Number);
+  useEffect(() => {
+    dispatch(servicePackage());
+  }, []);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -289,16 +320,10 @@ const OrderService = props => {
             </View>
           </View>
         </View>
-        <View style={styles.bodyPack}>
-          <Text style={styles.bodyTitle}>Đăng kí theo tháng</Text>
-          <Switch
-            trackColor={{false: '#767577', true: '#f26522'}}
-            thumbColor={isServicePacks ? '#f5dd4b' : '#f4f3f4'}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={toggleSwitch}
-            value={isServicePacks}
-          />
-        </View>
+        {servicePacks[0] !== 0 &&
+          servicePacks?.map((id, index) => (
+            <ServicePackage id={id} key={index} />
+          ))}
         <View>
           <Text style={styles.bodyTitle}>Ghi chú cho công việc</Text>
           <TextInput
@@ -352,6 +377,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 22,
     fontWeight: 'bold',
+    width: 250,
   },
   bodyLabel: {
     marginVertical: 10,
