@@ -10,7 +10,6 @@ import {
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {loginUser} from '../redux/reducers/Login/signinReducer';
-import Toast from 'react-native-toast-message';
 import {toastSuccess, toastError, toastConfig} from '../components/toastCustom';
 const Login = () => {
   const [userName, setEmail] = useState('');

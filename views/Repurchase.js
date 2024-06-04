@@ -19,28 +19,40 @@ import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
+import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
 
-const OrderService = props => {
+const Repurchase = props => {
+  console.log(props);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataServicePackage} = useSelector(state => state.servicePackage);
   const {dataLogin} = useSelector(state => state.login);
-  const dispatch = useDispatch();
+  const {dataOrderServiceByIdUser} = useSelector(
+    state => state.orderServiceByIdUser,
+  );
+  const [inforOrder, setInforOrder] = useState(() => {
+    const idOrder = props.route.params.id;
+    return dataOrderServiceByIdUser?.find(item => item.id === idOrder);
+  });
   const [inforService, setInforService] = useState(() => {
-    const idInforService = props.route.params.id;
+    const idInforService = inforOrder.id_service;
     return dataInforService?.find(item => item.id === idInforService);
   });
-  const [time, setTime] = useState(1);
-  const navigation = useNavigation();
-  const [quantity, setQuantity] = useState(1);
-  const [location, setLocation] = useState(dataLogin?.Address || '');
+  console.log(inforOrder, 'HHH:', inforService);
+  const [time, setTime] = useState(inforOrder?.Duration);
+  const [quantity, setQuantity] = useState(inforOrder?.Quantity);
+  const [location, setLocation] = useState(inforOrder?.Address || '');
   const [date, setDate] = useState(new Date());
   const [dateSelect, setDateSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
   const [days, setDays] = useState(1);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [total, setTotal] = useState(0);
-  const [note, setNote] = useState('');
-  const [isServicePacks, setIsServicePacks] = useState(0);
+  const [note, setNote] = useState(inforOrder?.Notes);
+  const [isServicePacks, setIsServicePacks] = useState(
+    inforOrder?.isServicePacks,
+  );
 
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
@@ -158,6 +170,7 @@ const OrderService = props => {
         isServicePacks,
         days,
       );
+      dispatch(orderServiceByIdUser(dataLogin?.id));
       if (response?.errno) {
         toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
         navigation.navigate('Home');
@@ -201,10 +214,11 @@ const OrderService = props => {
   useEffect(() => {
     dispatch(servicePackage());
   }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Orders')}>
           <Icons name="left" style={styles.iconHeader} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Đặt đơn công việc</Text>
@@ -335,7 +349,6 @@ const OrderService = props => {
           />
         </View>
       </ScrollView>
-
       <TouchableOpacity style={styles.footer} onPress={handleCashRegister}>
         <Text style={styles.priceText}>{total} VND</Text>
         <Text style={styles.nextButtonText}>Đặt Đơn</Text>
@@ -491,4 +504,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OrderService;
+export default Repurchase;

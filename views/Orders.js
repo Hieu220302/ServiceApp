@@ -130,6 +130,7 @@ const changeStateOrder = async (
 };
 
 const ItemButton = ({id, state, changeState, setChangeState, days}) => {
+  const navigation = useNavigation();
   if (state === 2) {
     return (
       <TouchableOpacity
@@ -155,7 +156,9 @@ const ItemButton = ({id, state, changeState, setChangeState, days}) => {
   } else {
     return (
       <View style={styles.groupButton}>
-        <TouchableOpacity style={[styles.button, {marginBottom: 10}]}>
+        <TouchableOpacity
+          style={[styles.button, {marginBottom: 10}]}
+          onPress={() => navigation.navigate('Repurchase', {id: id})}>
           <Text style={styles.buttonText}>Đặt lại</Text>
         </TouchableOpacity>
         <TouchableOpacity

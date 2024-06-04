@@ -58,7 +58,9 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Xin chào bạn ngày mới tốt lành</Text>
+        <Text style={styles.headerText}>
+          Xin chào bạn {dataLogin?.Name} ngày mới tốt lành
+        </Text>
         {!dataLogin?.id && (
           <TouchableOpacity
             style={styles.loginButton}

@@ -8,7 +8,6 @@ const Footer = () => {
       <FooterItem name="home" title="Trang chủ" page="Home" />
       <FooterItem name="shoppingcart" title="Đơn công việc" page="Orders" />
       {/* <FooterItem name="mail" title="Tin nhắn" /> */}
-      <FooterItem name="user" title="Tài khoản" page="Login" />
     </View>
   );
 };
