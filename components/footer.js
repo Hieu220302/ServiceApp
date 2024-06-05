@@ -2,13 +2,24 @@ import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Icons from 'react-native-vector-icons/AntDesign';
-const Footer = () => {
+const Footer = ({isUser}) => {
   return (
-    <View style={styles.footer}>
-      <FooterItem name="home" title="Trang chủ" page="Home" />
-      <FooterItem name="shoppingcart" title="Đơn công việc" page="Orders" />
-      {/* <FooterItem name="mail" title="Tin nhắn" /> */}
-    </View>
+    <>
+      {isUser && (
+        <View style={styles.footer}>
+          <FooterItem name="home" title="Trang chủ" page="Home" />
+          <FooterItem name="shoppingcart" title="Đơn công việc" page="Orders" />
+          {/* <FooterItem name="mail" title="Tin nhắn" /> */}
+        </View>
+      )}
+      {!isUser && (
+        <View style={styles.footer}>
+          <FooterItem name="calendar" title="Lịch làm" page="HomeStaff" />
+          <FooterItem name="profile" title="Đơn công việc" page="Orders" />
+          {/* <FooterItem name="mail" title="Tin nhắn" /> */}
+        </View>
+      )}
+    </>
   );
 };
 const FooterItem = ({name, title, page}) => {

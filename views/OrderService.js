@@ -19,11 +19,12 @@ import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
-
+import {inforUser} from '../redux/reducers/Users/inforUser';
 const OrderService = props => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataServicePackage} = useSelector(state => state.servicePackage);
   const {dataLogin} = useSelector(state => state.login);
+  const {dataInforUser} = useSelector(state => state.inforUser);
   const dispatch = useDispatch();
   const [inforService, setInforService] = useState(() => {
     const idInforService = props.route.params.id;
@@ -32,7 +33,7 @@ const OrderService = props => {
   const [time, setTime] = useState(1);
   const navigation = useNavigation();
   const [quantity, setQuantity] = useState(1);
-  const [location, setLocation] = useState(dataLogin?.Address || '');
+  const [location, setLocation] = useState(dataInforUser?.Address || '');
   const [date, setDate] = useState(new Date());
   const [dateSelect, setDateSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
@@ -143,27 +144,30 @@ const OrderService = props => {
       const code = `${compareTime(
         convertToVietnamTime(timeSelect),
       )}_${formatTimestamp(dateSelect)}`;
-
-      const response = await postOrderService(
-        dataLogin?.id,
-        location,
-        formatDate(dateSelect, timeSelect),
-        duration,
-        dataQuantity,
-        inforService.id,
-        2,
-        note,
-        parseInt(total.replace(/,/g, ''), 10),
-        code,
-        isServicePacks,
-        days,
-      );
-      if (response?.errno) {
-        toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
-        navigation.navigate('Home');
+      if (new Date() < new Date(formatDate(dateSelect, timeSelect))) {
+        const response = await postOrderService(
+          dataLogin?.id,
+          location,
+          formatDate(dateSelect, timeSelect),
+          duration,
+          dataQuantity,
+          inforService.id,
+          2,
+          note,
+          parseInt(total.replace(/,/g, ''), 10),
+          code,
+          isServicePacks,
+          days,
+        );
+        if (response?.errno) {
+          toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
+          navigation.navigate('Home');
+        } else {
+          toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
+          navigation.navigate('Orders');
+        }
       } else {
-        toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
-        navigation.navigate('Orders');
+        toastError('Lỗi đặt đơn', 'Bạn hãy kiểm tra lại thời gian đặt đơn');
       }
     }
   };
@@ -200,6 +204,7 @@ const OrderService = props => {
   const servicePacks = inforService?.isServicePacks.split(',')?.map(Number);
   useEffect(() => {
     dispatch(servicePackage());
+    dispatch(inforUser(dataLogin?.id));
   }, []);
   return (
     <View style={styles.container}>
@@ -294,7 +299,9 @@ const OrderService = props => {
                           .toLocaleDateString('vi-VN', {weekday: 'short'})
                           .toUpperCase()}
                       </Text>
-                      <Text style={styles.dateNumber}>{day.getDate()}</Text>
+                      <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                        day.getMonth() + 1
+                      }`}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -313,7 +320,7 @@ const OrderService = props => {
                   value={timeSelect}
                   mode="time"
                   is24Hour={true}
-                  display="default"
+                  display="spinner"
                   onChange={onChangeTime}
                 />
               )}

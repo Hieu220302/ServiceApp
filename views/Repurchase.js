@@ -22,7 +22,7 @@ import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
 
 const Repurchase = props => {
-  console.log(props);
+  //console.log(props);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {dataInforService} = useSelector(state => state.inforService);
@@ -39,7 +39,7 @@ const Repurchase = props => {
     const idInforService = inforOrder.id_service;
     return dataInforService?.find(item => item.id === idInforService);
   });
-  console.log(inforOrder, 'HHH:', inforService);
+  //console.log(inforOrder, 'HHH:', inforService);
   const [time, setTime] = useState(inforOrder?.Duration);
   const [quantity, setQuantity] = useState(inforOrder?.Quantity);
   const [location, setLocation] = useState(inforOrder?.Address || '');
@@ -155,28 +155,31 @@ const Repurchase = props => {
       const code = `${compareTime(
         convertToVietnamTime(timeSelect),
       )}_${formatTimestamp(dateSelect)}`;
-
-      const response = await postOrderService(
-        dataLogin?.id,
-        location,
-        formatDate(dateSelect, timeSelect),
-        duration,
-        dataQuantity,
-        inforService.id,
-        2,
-        note,
-        parseInt(total.replace(/,/g, ''), 10),
-        code,
-        isServicePacks,
-        days,
-      );
-      dispatch(orderServiceByIdUser(dataLogin?.id));
-      if (response?.errno) {
-        toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
-        navigation.navigate('Home');
+      if (new Date() < new Date(formatDate(dateSelect, timeSelect))) {
+        const response = await postOrderService(
+          dataLogin?.id,
+          location,
+          formatDate(dateSelect, timeSelect),
+          duration,
+          dataQuantity,
+          inforService.id,
+          2,
+          note,
+          parseInt(total.replace(/,/g, ''), 10),
+          code,
+          isServicePacks,
+          days,
+        );
+        dispatch(orderServiceByIdUser(dataLogin?.id));
+        if (response?.errno) {
+          toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
+          navigation.navigate('Home');
+        } else {
+          toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
+          navigation.navigate('Orders');
+        }
       } else {
-        toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
-        navigation.navigate('Orders');
+        toastError('Lỗi đặt đơn', 'Bạn hãy kiểm tra lại thời gian đặt đơn');
       }
     }
   };
@@ -308,7 +311,9 @@ const Repurchase = props => {
                           .toLocaleDateString('vi-VN', {weekday: 'short'})
                           .toUpperCase()}
                       </Text>
-                      <Text style={styles.dateNumber}>{day.getDate()}</Text>
+                      <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                        day.getMonth() + 1
+                      }`}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -327,7 +332,7 @@ const Repurchase = props => {
                   value={timeSelect}
                   mode="time"
                   is24Hour={true}
-                  display="default"
+                  display="spinner"
                   onChange={onChangeTime}
                 />
               )}

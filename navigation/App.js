@@ -8,6 +8,8 @@ import Toast from 'react-native-toast-message';
 import {toastConfig} from '../components/toastCustom';
 import Orders from '../views/Orders';
 import Repurchase from '../views/Repurchase';
+import ChangeInfor from '../views/ChangeInfor';
+import HomeStaff from '../views/HomeStaff';
 const Stack = createNativeStackNavigator();
 const App = () => {
   return (
@@ -36,6 +38,16 @@ const App = () => {
         <Stack.Screen
           name="Repurchase"
           component={Repurchase}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ChangeInfor"
+          component={ChangeInfor}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="HomeStaff"
+          component={HomeStaff}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

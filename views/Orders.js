@@ -105,7 +105,7 @@ const Orders = () => {
         </>
       )}
 
-      <Footer />
+      <Footer isUser={true} />
     </View>
   );
 };
