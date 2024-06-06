@@ -37,7 +37,7 @@ const HomeScreen = () => {
     } catch (error) {
       console.log(error);
     }
-  }, [dataLogin]);
+  }, [dataLogin,dispatch]);
   const navigation = useNavigation();
   const width = Dimensions.get('window').width;
   const list = [

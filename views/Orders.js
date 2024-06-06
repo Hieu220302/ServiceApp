@@ -30,7 +30,7 @@ const Orders = () => {
       dispatch(inforStaff());
       if (changeState === true) setChangeState(false);
     }
-  }, [changeState]);
+  }, [changeState,dispatch]);
 
   useEffect(() => {
     if (dataLogin?.id) {
@@ -44,7 +44,7 @@ const Orders = () => {
         }, 0),
       );
     }
-  }, [dataOrderServiceByIdUser]);
+  }, [dataOrderServiceByIdUser,dispatch]);
   const [count, setCount] = useState(() =>
     dataOrderServiceByIdUser?.reduce((count, order) => {
       if (order.State > 0) {
@@ -190,7 +190,7 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
   ];
   useEffect(() => {
     dispatch(servicePackage());
-  }, []);
+  }, [dispatch]);
   const namePackage =
     dataServicePackage.find(pack => pack.id === inforOrder.isServicePacks)
       ?.Name || 'Không đăng ký gói dịch vụ';

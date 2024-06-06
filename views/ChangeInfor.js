@@ -36,10 +36,10 @@ const ChangeInfor = props => {
   const [DOB, setDOB] = useState(dataInforUser?.DOB);
   const DOBRef = useRef(null);
   const [show, setShow] = useState(false);
- // console.log(dataInforUser);
+  // console.log(dataInforUser);
   useEffect(() => {
     dispatch(inforUser(dataLogin?.id));
-  }, []);
+  }, [dispatch]);
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date(DOB);

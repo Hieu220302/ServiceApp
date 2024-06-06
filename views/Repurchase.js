@@ -212,11 +212,11 @@ const Repurchase = props => {
     );
     setTotal(totalFunds);
     setDays(days);
-  }, [time, quantity, isServicePacks, dateSelect]);
+  }, [time, quantity, isServicePacks, dateSelect, dispatch]);
   const servicePacks = inforService?.isServicePacks.split(',')?.map(Number);
   useEffect(() => {
     dispatch(servicePackage());
-  }, []);
+  }, [dispatch]);
 
   return (
     <View style={styles.container}>

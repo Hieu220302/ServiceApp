@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -27,10 +27,13 @@ import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 import {orderServiceByIdStaff} from '../redux/reducers/orderService/orderServiceByIdStaff';
 import {inforCustomer} from '../redux/reducers/Users/inforCustomer';
 import changeOrderByStaff from '../api/orderService/changeOrderByStaff';
+import {inforStaffById} from '../redux/reducers/staff/staffById';
+import changeFreeTime from '../api/staff/changeFreeTime';
 const HomeStaff = () => {
   const {dataLogin} = useSelector(state => state.login);
   const {dataInforUser} = useSelector(state => state.inforUser);
   const {dataInforService} = useSelector(state => state.inforService);
+  const {dataInforStaffId} = useSelector(state => state.inforStaffById);
   const {dataOrderServiceByIdStaff} = useSelector(
     state => state.orderServiceByIdStaff,
   );
@@ -43,20 +46,36 @@ const HomeStaff = () => {
   ];
   const [tabSelect, setTabSelect] = useState(1);
   useEffect(() => {
-    try {
-      if (dataLogin?.id) {
-        dispatch(inforUser(dataLogin?.id));
-        dispatch(orderServiceByIdStaff(dataLogin?.id));
-        dispatch(servicePackage());
+    const fetchData = () => {
+      try {
+        if (dataLogin?.id) {
+          dispatch(inforUser(dataLogin.id));
+          dispatch(orderServiceByIdStaff(dataLogin.id));
+          dispatch(inforStaffById(dataLogin.id));
+          dispatch(servicePackage());
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
-  }, [dataLogin]);
+    };
+
+    fetchData();
+  }, [dataLogin, dispatch]);
+
+  const convertStrToArr = freeTime => {
+    if (freeTime === '') return [];
+    const arr = freeTime.split(',');
+    const result = arr.map(item => item.split('_')[1]);
+    return result;
+  };
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [freeTime, setFreeTime] = useState('');
-  const [checkFreeTime, setcheckFreeTime] = useState('');
+  const [freeTime, setFreeTime] = useState(dataInforStaffId?.Free_time || '');
+
+  const [checkFreeTime, setCheckFreeTime] = useState(() =>
+    convertStrToArr(dataInforStaffId?.Free_time),
+  );
+
   const openModal = () => {
     setModalVisible(true);
   };
@@ -79,7 +98,8 @@ const HomeStaff = () => {
 
     return `${day}/${month}/${year}`;
   };
-
+  const scrollViewRef = useRef(null);
+  const scrollX = useRef(null);
   const RegistrationSchedule = () => {
     const [date, setDate] = useState(() => {
       const day = new Date();
@@ -91,14 +111,24 @@ const HomeStaff = () => {
       setIsOpenModal(false);
     };
 
-    const handleSelectDate = (day, selectedDate, setSelectedDate) => {
-      console.log(setSelectedDate);
-      if (selectedDate) {
-        setSelectedDate(!selectedDate);
+    const handleSelectDay = (day, isSelect) => {
+      if (isSelect) {
+        const checkDay = formatDateStamp(day);
+        const positionDate = checkFreeTime.indexOf(checkDay);
+        console.log(checkFreeTime);
+        checkFreeTime.splice(positionDate, 1);
+        console.log(checkFreeTime);
+        const time = freeTime.split(',');
+        time.splice(positionDate, 1);
+        setFreeTime(time.join(','));
+        changeFreeTime({
+          id: dataInforStaffId?.id,
+          Free_time: time.join(','),
+        });
+        dispatch(inforStaffById(dataLogin.id));
       } else {
         setIsOpenModal(true);
         setDateSelect(day);
-        setSelectedDate(!selectedDate);
       }
     };
 
@@ -113,9 +143,10 @@ const HomeStaff = () => {
 
     const handleSelectShift = id => {
       let code = `${formatDateStamp(dateSelect)}`;
-      setcheckFreeTime(prev => {
-        if (prev !== '') return `${prev},${code}`;
+      setCheckFreeTime(prev => {
+        if (prev != []) prev.push(code);
         else return code;
+        return prev;
       });
       if (id === 0) {
         code = `D_` + code;
@@ -125,13 +156,30 @@ const HomeStaff = () => {
         code = `CT_` + code;
       }
       setFreeTime(prev => {
-        if (prev !== '') return `${prev},${code}`;
-        else return code;
+        let result = '';
+        if (prev !== '') result = `${prev},${code}`;
+        else result = code;
+        changeFreeTime({
+          id: dataInforStaffId?.id,
+          Free_time: result,
+        });
+        dispatch(inforStaffById(dataLogin.id));
+        return result;
       });
       closeModalShift();
     };
     const [isOpenModal, setIsOpenModal] = useState(false);
-    console.log(freeTime);
+
+    // Effect to update scroll position when ScrollView changes
+    useEffect(() => {
+      scrollViewRef.current.scrollTo({x: scrollX.current, animated: true});
+    }, []);
+
+    // Function to handle scroll event
+    const handleScroll = event => {
+      const {x} = event.nativeEvent.contentOffset;
+      scrollX.current = x;
+    };
     return (
       <View style={styles.dateContainer}>
         {isOpenModal && (
@@ -169,18 +217,19 @@ const HomeStaff = () => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.dateContainer}>
+          contentContainerStyle={styles.dateContainer}
+          ref={scrollViewRef}
+          onMomentumScrollEnd={handleScroll}>
           {[...Array(30).keys()].map(i => {
             const day = new Date();
             day.setDate(date.getDate() + i);
-            const [selectedDate, setSelectedDate] = useState(false);
+            const checkDay = formatDateStamp(day);
+            const isSelect = checkFreeTime?.includes(checkDay);
             return (
               <TouchableOpacity
                 key={i}
-                style={[styles.dateBox, selectedDate && styles.selectedDate]}
-                onPress={() =>
-                  handleSelectDate(day, selectedDate, setSelectedDate)
-                }>
+                style={[styles.dateBox, isSelect && styles.selectedDate]}
+                onPress={() => handleSelectDay(day, isSelect)}>
                 <Text style={styles.dateText}>
                   {day
                     .toLocaleDateString('vi-VN', {weekday: 'short'})
@@ -216,7 +265,6 @@ const HomeStaff = () => {
       let listWork = [];
       const {dataServicePackage} = useSelector(state => state.servicePackage);
       const {dataInforCustomer} = useSelector(state => state.inforCustomer);
-      console.log(dataOrderServiceByIdStaff);
       const searchWork = dataOrderServiceByIdStaff?.reduce((count, order) => {
         const orderDay = formatTimestamp(new Date(order.Time));
         const countDay = formatTimestamp(
@@ -244,7 +292,7 @@ const HomeStaff = () => {
       };
       useEffect(() => {
         dispatch(inforCustomer());
-      }, []);
+      }, [dispatch]);
 
       const checkTime = time => {
         const specificTime = new Date(time);
