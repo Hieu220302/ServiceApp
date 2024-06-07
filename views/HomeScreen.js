@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   Modal,
+  FlatList,
   TouchableWithoutFeedback,
 } from 'react-native';
 import Icons from 'react-native-vector-icons/EvilIcons';
@@ -37,7 +38,7 @@ const HomeScreen = () => {
     } catch (error) {
       console.log(error);
     }
-  }, [dataLogin,dispatch]);
+  }, [dataLogin, dispatch]);
   const navigation = useNavigation();
   const width = Dimensions.get('window').width;
   const list = [
@@ -65,6 +66,7 @@ const HomeScreen = () => {
   const [pagingEnabled, setPagingEnabled] = useState(true);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [isShow, setIsShow] = useState(false);
 
   const openModal = () => {
     setModalVisible(true);
@@ -73,22 +75,35 @@ const HomeScreen = () => {
   const closeModal = () => {
     setModalVisible(false);
   };
-
+  const closeModalRegister = () => {
+    setIsShow(false);
+  };
+  const openModalRegister = () => {
+    setIsShow(true);
+  };
   const handleSignUpStaff = async () => {
     try {
-      const response = await signUpStaff(dataLogin?.id);
-      if (response?.errno) {
-        toastError('Lỗi đăng kí', 'Hệ thống có lỗi xin bạn hãy đăng kí lại');
-      } else {
-        toastSuccess('Xác nhận đăng kí', 'Bạn đã đăng kí thành công');
-      }
-      dispatch(inforUser(dataLogin?.id));
+      openModalRegister();
       closeModal();
     } catch (error) {
       console.log(error);
     }
   };
 
+  const SignUpStaff = async id_service => {
+    try {
+      const response = await signUpStaff({id: dataLogin?.id, id_service});
+      if (response?.errno) {
+        toastError('Lỗi đăng kí', 'Hệ thống có lỗi xin bạn hãy đăng kí lại');
+      } else {
+        toastSuccess('Xác nhận đăng kí', 'Bạn đã đăng kí thành công');
+      }
+      dispatch(inforUser(dataLogin?.id));
+      closeModalRegister();
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -101,7 +116,33 @@ const HomeScreen = () => {
             <Text style={styles.headerText}>{dataInforUser?.Name}</Text>
           )}
         </TouchableOpacity>
-
+        {isShow && (
+          <Modal
+            transparent={true}
+            animationType="none"
+            visible={isShow}
+            onRequestClose={closeModalRegister}>
+            <TouchableWithoutFeedback onPress={closeModalRegister}>
+              <View style={styles.overlayView}>
+                <View style={styles.modalViewRegister}>
+                  <Text style={styles.textDate}>Chọn công việc</Text>
+                  {dataGroupService?.map(groupService => {
+                    return (
+                      <TouchableOpacity
+                        key={groupService?.id}
+                        style={styles.closeButton}
+                        onPress={() => SignUpStaff(groupService?.id)}>
+                        <Text style={styles.textStyle}>
+                          {groupService?.Name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+        )}
         {modalVisible && (
           <Modal
             transparent={true}
@@ -288,9 +329,29 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  overlayView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerRight: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalViewRegister: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalView: {
     right: 0,
@@ -311,6 +372,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     backgroundColor: 'white',
+  },
+  textDate: {
+    fontSize: 24,
+    color: '#f26522',
+    fontWeight: '700',
   },
   textStyle: {
     fontSize: 20,

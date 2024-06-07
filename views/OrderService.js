@@ -158,6 +158,7 @@ const OrderService = props => {
           code,
           isServicePacks,
           days,
+          inforService.id_group,
         );
         if (response?.errno) {
           toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');

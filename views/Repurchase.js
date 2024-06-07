@@ -169,6 +169,7 @@ const Repurchase = props => {
           code,
           isServicePacks,
           days,
+          inforService.id_group,
         );
         dispatch(orderServiceByIdUser(dataLogin?.id));
         if (response?.errno) {

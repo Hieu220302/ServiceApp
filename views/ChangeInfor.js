@@ -36,6 +36,7 @@ const ChangeInfor = props => {
   const [DOB, setDOB] = useState(dataInforUser?.DOB);
   const DOBRef = useRef(null);
   const [show, setShow] = useState(false);
+  const [errors, setErrors] = useState({});
   // console.log(dataInforUser);
   useEffect(() => {
     dispatch(inforUser(dataLogin?.id));
@@ -60,24 +61,51 @@ const ChangeInfor = props => {
     setDOB(dataInforUser?.DOB);
   };
 
+  const validate = () => {
+    const newErrors = {};
+
+    if (!name) newErrors.name = 'Họ và tên không được để trống';
+    if (!location) newErrors.location = 'Địa chỉ không được để trống';
+    if (!CIC) {
+      newErrors.CIC = 'Căn cước công dân không được để trống';
+    } else if (!/^\d{10}$/.test(CIC)) {
+      newErrors.CIC = 'Căn cước công dân phải là 10 số';
+    }
+    if (!email) newErrors.email = 'Email không được để trống';
+    if (!phoneNumber) {
+      newErrors.phoneNumber = 'Số điện thoại không được để trống';
+    } else if (!/^\d{10}$/.test(phoneNumber)) {
+      newErrors.phoneNumber = 'Số điện thoại phải là 10 số';
+    }
+    if (!DOB) newErrors.DOB = 'Ngày sinh không được để trống';
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleUpdateInfor = async () => {
-    const Updated_at = formatDateStamp(new Date());
-    const response = await updateUser({
-      id: dataInforUser?.id,
-      Name: name,
-      Address: location,
-      CIC,
-      Email: email,
-      Phone_number: phoneNumber,
-      DOB: formatDateStamp(new Date(DOB)),
-      Updated_at,
-    });
-    dispatch(inforUser(dataLogin?.id));
-    if (response?.errno) {
-      toastError('Lỗi cập nhật', 'Hệ thống có lỗi xin bạn hãy cập nhật lại');
-      navigation.navigate('Home');
+    if (validate()) {
+      const Updated_at = formatDateStamp(new Date());
+      const response = await updateUser({
+        id: dataInforUser?.id,
+        Name: name,
+        Address: location,
+        CIC,
+        Email: email,
+        Phone_number: phoneNumber,
+        DOB: formatDateStamp(new Date(DOB)),
+        Updated_at,
+      });
+      dispatch(inforUser(dataLogin?.id));
+      if (response?.errno) {
+        toastError('Lỗi cập nhật', 'Hệ thống có lỗi xin bạn hãy cập nhật lại');
+        navigation.navigate('Home');
+      } else {
+        toastSuccess('Xác nhận cập nhật', 'Bạn đã cập nhật thành công');
+      }
     } else {
-      toastSuccess('Xác nhận cập nhật', 'Bạn đã cập nhật thành công');
+      toastError('Lỗi cập nhật', 'Bạn hãy kiểm tra lại thông tin');
     }
   };
 
@@ -119,12 +147,15 @@ const ChangeInfor = props => {
           value={name}
           onChangeText={value => setName(value)}
         />
+        {errors.name && <Text style={styles.error}>{errors.name}</Text>}
         <Text style={styles.bodyTitle}>Căn cứ công dân:</Text>
         <TextInput
           style={styles.textInput}
           value={CIC}
+          keyboardType="phone-pad"
           onChangeText={value => setCIC(value)}
         />
+        {errors.CIC && <Text style={styles.error}>{errors.CIC}</Text>}
         <Text style={styles.bodyTitle}>Ngày sinh:</Text>
         <TextInput
           ref={DOBRef}
@@ -132,24 +163,31 @@ const ChangeInfor = props => {
           value={formatTimestamp(DOB)}
           onFocus={handleFocus}
         />
+        {errors.DOB && <Text style={styles.error}>{errors.DOB}</Text>}
         <Text style={styles.bodyTitle}>Địa chỉ:</Text>
         <TextInput
           style={styles.textInput}
           value={location}
           onChangeText={value => setLocation(value)}
         />
+        {errors.location && <Text style={styles.error}>{errors.location}</Text>}
         <Text style={styles.bodyTitle}>Số điện thoại:</Text>
         <TextInput
           style={styles.textInput}
           value={phoneNumber}
           onChangeText={value => setPhoneNumber(value)}
+          keyboardType="phone-pad"
         />
+        {errors.phoneNumber && (
+          <Text style={styles.error}>{errors.phoneNumber}</Text>
+        )}
         <Text style={styles.bodyTitle}>Email:</Text>
         <TextInput
           style={styles.textInput}
           value={email}
           onChangeText={value => setEmail(value)}
         />
+        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
         {show && (
           <DateTimePicker
             testID="dateTimePicker"
@@ -234,6 +272,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  error: {
+    color: 'red',
+    marginBottom: 12,
   },
 });
 

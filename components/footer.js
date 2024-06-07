@@ -15,7 +15,11 @@ const Footer = ({isUser}) => {
       {!isUser && (
         <View style={styles.footer}>
           <FooterItem name="calendar" title="Lịch làm" page="HomeStaff" />
-          <FooterItem name="profile" title="Đơn công việc" page="Orders" />
+          <FooterItem
+            name="profile"
+            title="Đăng ký việc"
+            page="RegisterOrders"
+          />
           {/* <FooterItem name="mail" title="Tin nhắn" /> */}
         </View>
       )}

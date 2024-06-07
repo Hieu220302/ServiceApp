@@ -13,15 +13,14 @@ import {
 import Icons from 'react-native-vector-icons/EvilIcons';
 import {useDispatch, useSelector} from 'react-redux';
 import convertToVietnamTime from '../components/convertToVietnamTime';
-import {groupService} from '../redux/reducers/groupService/groupServiceReducer';
-import {inforService} from '../redux/reducers/inforService/inforServiceReducer';
+
 import {useNavigation} from '@react-navigation/native';
-import Carousel from 'react-native-reanimated-carousel';
+
 import {logout} from '../redux/reducers/Login/signinReducer';
 import Footer from '../components/footer';
-import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
+
 import {inforUser} from '../redux/reducers/Users/inforUser';
-import signUpStaff from '../api/User/signUpStaff';
+
 import {toastError, toastSuccess} from '../components/toastCustom';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 import {orderServiceByIdStaff} from '../redux/reducers/orderService/orderServiceByIdStaff';
@@ -39,29 +38,16 @@ const HomeStaff = () => {
   );
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const listTab = [
-    {id: 1, name: 'Chờ làm'},
-    {id: 2, name: 'Lặp lại'},
-    {id: 3, name: 'Theo gói'},
-  ];
-  const [tabSelect, setTabSelect] = useState(1);
   useEffect(() => {
-    const fetchData = () => {
-      try {
-        if (dataLogin?.id) {
-          dispatch(inforUser(dataLogin.id));
-          dispatch(orderServiceByIdStaff(dataLogin.id));
-          dispatch(inforStaffById(dataLogin.id));
-          dispatch(servicePackage());
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchData();
+    dispatch(inforUser(dataLogin.id));
+    dispatch(orderServiceByIdStaff(dataLogin.id));
+    dispatch(inforStaffById(dataLogin.id));
+    dispatch(servicePackage());
   }, [dataLogin, dispatch]);
-
+  useEffect(() => {
+    setFreeTime(dataInforStaffId?.Free_time);
+    setCheckFreeTime(convertStrToArr(dataInforStaffId?.Free_time));
+  }, [dataInforStaffId]);
   const convertStrToArr = freeTime => {
     if (freeTime === '') return [];
     const arr = freeTime.split(',');
@@ -100,6 +86,7 @@ const HomeStaff = () => {
   };
   const scrollViewRef = useRef(null);
   const scrollX = useRef(null);
+  const [isShow, setIsShow] = useState(false);
   const RegistrationSchedule = () => {
     const [date, setDate] = useState(() => {
       const day = new Date();
@@ -115,17 +102,11 @@ const HomeStaff = () => {
       if (isSelect) {
         const checkDay = formatDateStamp(day);
         const positionDate = checkFreeTime.indexOf(checkDay);
-        console.log(checkFreeTime);
         checkFreeTime.splice(positionDate, 1);
-        console.log(checkFreeTime);
         const time = freeTime.split(',');
         time.splice(positionDate, 1);
         setFreeTime(time.join(','));
-        changeFreeTime({
-          id: dataInforStaffId?.id,
-          Free_time: time.join(','),
-        });
-        dispatch(inforStaffById(dataLogin.id));
+        setIsShow(true);
       } else {
         setIsOpenModal(true);
         setDateSelect(day);
@@ -159,89 +140,103 @@ const HomeStaff = () => {
         let result = '';
         if (prev !== '') result = `${prev},${code}`;
         else result = code;
-        changeFreeTime({
-          id: dataInforStaffId?.id,
-          Free_time: result,
-        });
-        dispatch(inforStaffById(dataLogin.id));
         return result;
       });
       closeModalShift();
+      setIsShow(true);
     };
     const [isOpenModal, setIsOpenModal] = useState(false);
 
-    // Effect to update scroll position when ScrollView changes
     useEffect(() => {
       scrollViewRef.current.scrollTo({x: scrollX.current, animated: true});
     }, []);
 
-    // Function to handle scroll event
     const handleScroll = event => {
       const {x} = event.nativeEvent.contentOffset;
       scrollX.current = x;
     };
+
+    const handleUpdate = async () => {
+      setIsShow(false);
+      const res = await changeFreeTime({
+        id: dataInforStaffId?.id,
+        Free_time: freeTime,
+      });
+      dispatch(inforStaffById(dataLogin.id));
+    };
     return (
-      <View style={styles.dateContainer}>
-        {isOpenModal && (
-          <Modal
-            transparent={true}
-            animationType="none"
-            visible={isOpenModal}
-            onRequestClose={closeModalShift}>
-            <TouchableWithoutFeedback onPress={closeModalShift}>
-              <View style={styles.overlayDate}>
-                <View style={styles.modalViewDate}>
-                  <Text style={styles.textDate}>Chọn ca làm việc</Text>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => handleSelectShift(0)}>
-                    <Text style={styles.textStyle}>Cả ngày</Text>
-                  </TouchableOpacity>
+      <View>
+        <View style={styles.dateContainer}>
+          {isOpenModal && (
+            <Modal
+              transparent={true}
+              animationType="none"
+              visible={isOpenModal}
+              onRequestClose={closeModalShift}>
+              <TouchableWithoutFeedback onPress={closeModalShift}>
+                <View style={styles.overlayDate}>
+                  <View style={styles.modalViewDate}>
+                    <Text style={styles.textDate}>Chọn ca làm việc</Text>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => handleSelectShift(0)}>
+                      <Text style={styles.textStyle}>Cả ngày</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => handleSelectShift(1)}>
-                    <Text style={styles.textStyle}>Ca Sáng</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => handleSelectShift(1)}>
+                      <Text style={styles.textStyle}>Ca Sáng</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => handleSelectShift(2)}>
-                    <Text style={styles.textStyle}>Ca Tối</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => handleSelectShift(2)}>
+                      <Text style={styles.textStyle}>Ca Tối</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
+              </TouchableWithoutFeedback>
+            </Modal>
+          )}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateContainer}
+            ref={scrollViewRef}
+            onMomentumScrollEnd={handleScroll}>
+            {[...Array(30).keys()].map(i => {
+              const day = new Date();
+              day.setDate(date.getDate() + i);
+              const checkDay = formatDateStamp(day);
+              const isSelect = checkFreeTime?.includes(checkDay);
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.dateBox, isSelect && styles.selectedDate]}
+                  onPress={() => handleSelectDay(day, isSelect)}>
+                  <Text style={styles.dateText}>
+                    {day
+                      .toLocaleDateString('vi-VN', {weekday: 'short'})
+                      .toUpperCase()}
+                  </Text>
+                  <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                    day.getMonth() + 1
+                  }`}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+        {isShow && (
+          <View style={styles.viewUpdate}>
+            <TouchableOpacity
+              style={styles.buttonUpdate}
+              onPress={handleUpdate}>
+              <Text style={styles.buttonTextUpdate}>Cập nhật</Text>
+            </TouchableOpacity>
+          </View>
         )}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.dateContainer}
-          ref={scrollViewRef}
-          onMomentumScrollEnd={handleScroll}>
-          {[...Array(30).keys()].map(i => {
-            const day = new Date();
-            day.setDate(date.getDate() + i);
-            const checkDay = formatDateStamp(day);
-            const isSelect = checkFreeTime?.includes(checkDay);
-            return (
-              <TouchableOpacity
-                key={i}
-                style={[styles.dateBox, isSelect && styles.selectedDate]}
-                onPress={() => handleSelectDay(day, isSelect)}>
-                <Text style={styles.dateText}>
-                  {day
-                    .toLocaleDateString('vi-VN', {weekday: 'short'})
-                    .toUpperCase()}
-                </Text>
-                <Text style={styles.dateNumber}>{`${day.getDate()}/${
-                  day.getMonth() + 1
-                }`}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
       </View>
     );
   };
@@ -350,6 +345,7 @@ const HomeStaff = () => {
                 const job = dataInforService.find(
                   infor => infor.id === inforOrder?.id_service,
                 );
+
                 const customer = dataInforCustomer.find(
                   dataCustomer => dataCustomer.id === inforOrder?.id,
                 );
@@ -507,6 +503,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  viewUpdate: {
+    alignItems: 'center',
+    margin: 20,
+  },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -527,6 +527,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: '#f26522',
     padding: 10,
+  },
+  buttonTextUpdate: {
+    color: '#fff',
+    fontSize: 30,
+    textAlign: 'center',
+    fontWeight: '800',
   },
   noticeText: {
     fontSize: 20,
@@ -572,6 +578,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 125,
+    marginBottom: 50,
+  },
+  buttonUpdate: {
+    backgroundColor: '#00a800',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+
     marginBottom: 50,
   },
   buttonText: {
@@ -675,22 +690,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeStaff;
-
-/* <View style={styles.tabBar}>
-        {listTab.map(tab => {
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.tab, tab.id === tabSelect && styles.activeTab]}
-              onPress={() => setTabSelect(tab.id)}>
-              <Text
-                style={[
-                  styles.tabText,
-                  tab.id === tabSelect && styles.tabSelect,
-                ]}>
-                {tab.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View> */

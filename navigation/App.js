@@ -10,6 +10,8 @@ import Orders from '../views/Orders';
 import Repurchase from '../views/Repurchase';
 import ChangeInfor from '../views/ChangeInfor';
 import HomeStaff from '../views/HomeStaff';
+import RegisterOrders from '../views/RegisterOrders';
+import SignUp from '../views/SignUp';
 const Stack = createNativeStackNavigator();
 const App = () => {
   return (
@@ -48,6 +50,16 @@ const App = () => {
         <Stack.Screen
           name="HomeStaff"
           component={HomeStaff}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="RegisterOrders"
+          component={RegisterOrders}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="SignUp"
+          component={SignUp}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

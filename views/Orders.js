@@ -30,7 +30,7 @@ const Orders = () => {
       dispatch(inforStaff());
       if (changeState === true) setChangeState(false);
     }
-  }, [changeState,dispatch]);
+  }, [changeState, dispatch]);
 
   useEffect(() => {
     if (dataLogin?.id) {
@@ -44,7 +44,7 @@ const Orders = () => {
         }, 0),
       );
     }
-  }, [dataOrderServiceByIdUser,dispatch]);
+  }, [dataOrderServiceByIdUser, dispatch]);
   const [count, setCount] = useState(() =>
     dataOrderServiceByIdUser?.reduce((count, order) => {
       if (order.State > 0) {
@@ -98,7 +98,7 @@ const Orders = () => {
           {count === 0 && (
             <View style={styles.content}>
               <Text style={styles.description}>
-                Bạn hãy bắt đầu một đơn mới để có thể hiện thị ở đây
+                Bạn hãy bắt đầu một đơn mới để có thể hiển thị ở đây
               </Text>
             </View>
           )}
@@ -148,9 +148,7 @@ const ItemButton = ({id, state, changeState, setChangeState, days}) => {
         onPress={() =>
           changeStateOrder(id, 4, changeState, setChangeState, days)
         }>
-        <Text style={styles.buttonText}>
-          Xác nhận hoàn thành công việc hôm nay
-        </Text>
+        <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
       </TouchableOpacity>
     );
   } else {

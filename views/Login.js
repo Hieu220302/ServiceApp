@@ -12,11 +12,10 @@ import {useDispatch, useSelector} from 'react-redux';
 import {loginUser} from '../redux/reducers/Login/signinReducer';
 import {toastSuccess, toastError, toastConfig} from '../components/toastCustom';
 const Login = () => {
-  const [userName, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const [error, setError] = useState(false);
   const handleLogin = async () => {
     try {
       if (userName && password) {
@@ -43,6 +42,7 @@ const Login = () => {
       console.log(error);
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -55,7 +55,7 @@ const Login = () => {
         <TextInput
           style={styles.input}
           placeholder="Tên đăng nhập"
-          onChangeText={text => setEmail(text)}
+          onChangeText={text => setUserName(text)}
           autoFocus={true}
         />
         <TextInput
@@ -64,9 +64,16 @@ const Login = () => {
           secureTextEntry
           onChangeText={text => setPassword(text)}
         />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Đăng nhập</Text>
-        </TouchableOpacity>
+        <View style={styles.viewButton}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Đăng nhập</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('SignUp')}>
+            <Text style={styles.buttonText}>Đăng Ký</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* <Text style={styles.forgotPassword}>Forgot your password?</Text> */}
@@ -89,7 +96,7 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 240,
+    marginRight: 280,
   },
   headerText: {
     fontSize: 25,
@@ -117,7 +124,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+    margin: 10,
   },
+  viewButton: {flexDirection: 'row'},
   buttonText: {
     color: 'white',
     fontSize: 20,

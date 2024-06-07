@@ -16,6 +16,7 @@ import inforUser from './reducers/Users/inforUser';
 import orderServiceByIdStaff from './reducers/orderService/orderServiceByIdStaff';
 import inforCustomer from './reducers/Users/inforCustomer';
 import inforStaffById from './reducers/staff/staffById';
+import orderServiceByIdGroup from './reducers/orderService/orderServiceByIdGroup';
 const rootReducer = combineReducers({
   login: loginSlice,
   groupService: groupService,
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   inforUser: inforUser,
   orderServiceByIdStaff: orderServiceByIdStaff,
   inforStaffById: inforStaffById,
+  orderServiceByIdGroup: orderServiceByIdGroup,
 });
 
 const persistConfig = {

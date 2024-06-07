@@ -1,12 +1,11 @@
 import axios from 'axios';
 import {urlAPI} from '../apiAddress';
 
-const signUpStaff = async props => {
+const checkUsername = async props => {
   try {
     // console.log(id);
-    const response = await axios.put(urlAPI + `users/signUpStaff`, {
-      id: props.id,
-      id_service: props.id_service,
+    const response = await axios.post(urlAPI + `users/checkUsername`, {
+      Username: props.Username,
     });
     //console.log(response);
     return response.data;
@@ -15,4 +14,4 @@ const signUpStaff = async props => {
   }
 };
 
-export default signUpStaff;
+export default checkUsername;
