@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {urlAPI} from '../apiAddress';
 
-const changeRegistrationTime = async ({id, Free_time, Registration_Time}) => {
+const changeRegistrationTime = async (id, Free_time, Registration_Time) => {
   try {
     const response = await axios.put(urlAPI + 'staff/changeRegistrationTime', {
       id: id,

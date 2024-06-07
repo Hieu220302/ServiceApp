@@ -27,6 +27,7 @@ import changeOrderByStaff from '../api/orderService/changeOrderByStaff';
 import {inforStaffById} from '../redux/reducers/staff/staffById';
 import changeFreeTime from '../api/staff/changeFreeTime';
 import {orderServiceByIdGroup} from '../redux/reducers/orderService/orderServiceByIdGroup';
+import changeRegistrationTime from '../api/staff/changeRegistrationTime';
 const RegisterOrders = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -36,7 +37,7 @@ const RegisterOrders = () => {
     state => state.orderServiceByIdGroup,
   );
   const [workTime, setWorkTime] = useState('');
-
+  const [isShow, setIsShow] = useState(false);
   useEffect(() => {
     const fetchData = () => {
       try {
@@ -55,11 +56,23 @@ const RegisterOrders = () => {
   }, [dataLogin, dispatch]);
   useEffect(() => {
     setWorkTime(
-      dataInforStaffId?.Registration_Time === null
+      !dataInforStaffId?.Registration_Time
         ? ''
         : dataInforStaffId?.Registration_Time,
     );
   }, [dataInforStaffId]);
+  useEffect(() => {
+    const sum = dataOrderServiceByIdGroup?.reduce((count, inforOrder) => {
+      const checkDay = workTime.split(',');
+      const positionDate = checkDay.indexOf(inforOrder?.code);
+      console.log(positionDate);
+      if (positionDate === -1) {
+        return ++count;
+      } else return count;
+    }, 0);
+    setIsShow(sum === 0 ? true : false);
+  }, [dataOrderServiceByIdGroup]);
+
   useEffect(() => {
     dispatch(
       orderServiceByIdGroup({
@@ -68,7 +81,14 @@ const RegisterOrders = () => {
       }),
     );
   }, []);
-  console.log(workTime);
+
+  const convertStrToArr = string => {
+    if (string === '') return [];
+    const arr = string.split(',');
+    const result = arr.map(item => item.split('_')[1]);
+    return result;
+  };
+
   const RegisterOrder = async (code, id, id_staff) => {
     try {
       let result = '';
@@ -77,8 +97,29 @@ const RegisterOrders = () => {
         else result = code;
         return result;
       });
-
-      const response = await changeOrderByStaff(id, 3, id_staff);
+      let freeTime = dataInforStaffId?.Free_time || '';
+      let checkFreeTime = convertStrToArr(freeTime);
+      let checkDay = convertStrToArr(code);
+      let positionDate = checkFreeTime.indexOf(checkDay[0]);
+      let time = freeTime.split(',');
+      if (positionDate !== -1) {
+        if (time[positionDate] === code) {
+          time.splice(positionDate, 1);
+          freeTime = time.join(',');
+        } else {
+          if (time[positionDate][0] === 'D') {
+            if (code.substring(0, 2) === 'CT') {
+              code = 'CS' + code.slice(2);
+            } else {
+              code = 'CT' + code.slice(2);
+            }
+            time[positionDate] = code;
+            freeTime = time.join(',');
+          }
+        }
+      }
+      let response = await changeRegistrationTime(id_staff, freeTime, result);
+      response = await changeOrderByStaff(id, 3, id_staff);
       if (response?.errno) {
         toastError('Lỗi đăng ký', 'Hệ thống có lỗi xin bạn hãy đăng ký lại');
       } else {
@@ -186,18 +227,23 @@ const RegisterOrders = () => {
       <View style={styles.header}>
         <Text style={styles.headerText}>Đăng ký việc</Text>
       </View>
-      {dataOrderServiceByIdGroup?.length === 0 ? (
+      {isShow && (
         <View style={styles.content}>
           <Text style={styles.description}>
             Hiện chưa có đơn công việc bạn hãy quay lại sau
           </Text>
         </View>
-      ) : (
+      )}
+      {dataOrderServiceByIdGroup?.length > 0 && !isShow && (
         <View style={styles.body}>
           <ScrollView>
-            {dataOrderServiceByIdGroup?.map((inforOrder, index) => (
-              <InforOrder inforOrder={inforOrder} key={index} />
-            ))}
+            {dataOrderServiceByIdGroup?.map((inforOrder, index) => {
+              const checkDay = workTime.split(',');
+              const positionDate = checkDay.indexOf(inforOrder?.code);
+              if (positionDate === -1) {
+                return <InforOrder inforOrder={inforOrder} key={index} />;
+              } else return <View key={index}></View>;
+            })}
           </ScrollView>
         </View>
       )}

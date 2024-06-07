@@ -45,8 +45,14 @@ const HomeStaff = () => {
     dispatch(servicePackage());
   }, [dataLogin, dispatch]);
   useEffect(() => {
-    setFreeTime(dataInforStaffId?.Free_time);
-    setCheckFreeTime(convertStrToArr(dataInforStaffId?.Free_time));
+    setFreeTime(
+      !dataInforStaffId?.Free_time ? '' : dataInforStaffId?.Free_time,
+    );
+    setCheckFreeTime(
+      convertStrToArr(
+        !dataInforStaffId?.Free_time ? '' : dataInforStaffId?.Free_time,
+      ),
+    );
   }, [dataInforStaffId]);
   const convertStrToArr = freeTime => {
     if (freeTime === '') return [];
