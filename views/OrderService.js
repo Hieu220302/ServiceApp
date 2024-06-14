@@ -14,7 +14,7 @@ import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import cashRegister from '../components/cashRegister';
+import cashRegister, {cashRegisterCustom} from '../components/cashRegister';
 import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
@@ -43,11 +43,7 @@ const OrderService = props => {
   const [isServicePacks, setIsServicePacks] = useState(0);
   const [codeWork, setCodeWork] = useState([]);
   const scrollViewRef = useRef(null);
-  const [date, setDate] = useState(() => {
-    const day = new Date();
-    day.setDate(day.getDate() + 1);
-    return day;
-  });
+
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
@@ -154,7 +150,7 @@ const OrderService = props => {
       if (inforService.hasTime) duration = time;
       if (inforService.hasQuantity) dataQuantity = quantity;
       let code = '';
-      if (isServicePacks !== 5) {
+      if (isServicePacks === 0) {
         code = `${compareTime(
           convertToVietnamTime(timeSelect),
         )}_${formatTimestamp(dateSelect)}`;
@@ -165,7 +161,6 @@ const OrderService = props => {
           )
           .join(',');
       }
-
       if (new Date() < new Date(formatDate(dateSelect, timeSelect))) {
         const response = await postOrderService(
           dataLogin?.id,
@@ -207,11 +202,14 @@ const OrderService = props => {
           const dateB = parseDate(b);
           return dateA - dateB;
         });
+        setDays(sortedDates?.length);
         setDateSelect(parseDate(sortedDates[0]));
         return sortedDates;
       } else {
         sortedDates = prev.filter(date => date !== dateSelected);
-        setDateSelect(parseDate(sortedDates[0]));
+        setDays(sortedDates?.length);
+        if (sortedDates.length !== 0) setDateSelect(parseDate(sortedDates[0]));
+        else setDateSelect(new Date());
         return sortedDates;
       }
     });
@@ -223,6 +221,8 @@ const OrderService = props => {
   };
 
   const handleSelectPackage = id => {
+    if (isServicePacks === id) setDays(1);
+    else setCodeWork([]);
     setIsServicePacks(prevId => (prevId === id ? 0 : id));
   };
 
@@ -252,7 +252,7 @@ const OrderService = props => {
             onMomentumScrollEnd={handleScroll}>
             {[...Array(30).keys()].map(i => {
               const day = new Date();
-              day.setDate(date.getDate() + i);
+              day.setDate(day.getDate() + i);
               const positionDate =
                 codeWork.indexOf(formatTimestamp(day)) !== -1 ? true : false;
               return (
@@ -278,16 +278,27 @@ const OrderService = props => {
   };
 
   useEffect(() => {
-    const {days, totalFunds} = cashRegister(
-      inforService.Price,
-      quantity,
-      time,
-      isServicePacks,
-      dateSelect,
-    );
-    setTotal(totalFunds);
-    setDays(days);
-  }, [time, quantity, isServicePacks, dateSelect, dispatch]);
+    if (isServicePacks !== 5) {
+      const {days, totalFunds, code} = cashRegister(
+        inforService.Price,
+        quantity,
+        time,
+        isServicePacks,
+        dateSelect,
+      );
+      setTotal(totalFunds);
+      setDays(days);
+      setCodeWork(code);
+    } else {
+      const totalFunds = cashRegisterCustom(
+        inforService.Price,
+        quantity,
+        time,
+        codeWork.length,
+      );
+      setTotal(totalFunds);
+    }
+  }, [time, quantity, isServicePacks, dateSelect]);
 
   const servicePacks =
     inforService?.isServicePacks?.split(',')?.map(Number) || [];

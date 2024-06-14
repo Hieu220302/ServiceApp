@@ -14,7 +14,6 @@ import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import cashRegister from '../components/cashRegister';
 import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';

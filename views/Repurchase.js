@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import cashRegister from '../components/cashRegister';
+import cashRegister, {cashRegisterCustom} from '../components/cashRegister';
 import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
@@ -52,6 +52,8 @@ const Repurchase = props => {
   const [isServicePacks, setIsServicePacks] = useState(
     inforOrder?.isServicePacks,
   );
+  const [codeWork, setCodeWork] = useState([]);
+  const scrollViewRef = useRef(null);
 
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
@@ -141,6 +143,13 @@ const Repurchase = props => {
     return isAfterNoon ? 'CT' : 'CS';
   };
 
+  const parseDate = dateStr => {
+    const day = dateStr.substring(0, 2);
+    const month = dateStr.substring(2, 4);
+    const year = '20' + dateStr.substring(4, 6);
+    return new Date(year, month - 1, day);
+  };
+
   const handleCashRegister = async () => {
     if (!dataLogin?.id)
       toastError('Lỗi đặt đơn', 'Bạn cần đăng nhập trước khi đặt');
@@ -151,9 +160,18 @@ const Repurchase = props => {
       let dataQuantity = 0;
       if (inforService.hasTime) duration = time;
       if (inforService.hasQuantity) dataQuantity = quantity;
-      const code = `${compareTime(
-        convertToVietnamTime(timeSelect),
-      )}_${formatTimestamp(dateSelect)}`;
+      let code = '';
+      if (isServicePacks === 0) {
+        code = `${compareTime(
+          convertToVietnamTime(timeSelect),
+        )}_${formatTimestamp(dateSelect)}`;
+      } else {
+        code = codeWork
+          .map(
+            date => `${compareTime(convertToVietnamTime(timeSelect))}_${date}`,
+          )
+          .join(',');
+      }
       if (new Date() < new Date(formatDate(dateSelect, timeSelect))) {
         const response = await postOrderService(
           dataLogin?.id,
@@ -184,7 +202,46 @@ const Repurchase = props => {
     }
   };
 
+  const handleChooseDay = day => {
+    const dateSelected = formatTimestamp(day);
+    setCodeWork(prev => {
+      const positionDate = prev.indexOf(dateSelected);
+      let sortedDates = [];
+      if (positionDate === -1) {
+        let sortedDates = [...prev, dateSelected];
+        sortedDates = sortedDates.sort((a, b) => {
+          const dateA = parseDate(a);
+          const dateB = parseDate(b);
+          return dateA - dateB;
+        });
+        setDays(sortedDates?.length);
+        setDateSelect(parseDate(sortedDates[0]));
+        return sortedDates;
+      } else {
+        sortedDates = prev.filter(date => date !== dateSelected);
+        setDays(sortedDates?.length);
+        if (sortedDates.length !== 0) setDateSelect(parseDate(sortedDates[0]));
+        else setDateSelect(new Date());
+        return sortedDates;
+      }
+    });
+  };
+  const scrollX = useRef(null);
+  const handleScroll = event => {
+    const {x} = event.nativeEvent.contentOffset;
+    scrollX.current = x;
+  };
+
+  const handleSelectPackage = id => {
+    if (isServicePacks === id) setDays(1);
+    else setCodeWork([]);
+    setIsServicePacks(prevId => (prevId === id ? 0 : id));
+  };
+
   const ServicePackage = ({id}) => {
+    useEffect(() => {
+      scrollViewRef?.current?.scrollTo({x: scrollX.current, animated: true});
+    }, []);
     const name = dataServicePackage?.find(pack => pack.id === id)?.Name;
     return (
       <View>
@@ -194,27 +251,66 @@ const Repurchase = props => {
             trackColor={{false: '#767577', true: '#f26522'}}
             thumbColor="#f4f3f4"
             ios_backgroundColor="#3e3e3e"
-            onValueChange={() =>
-              setIsServicePacks(prevId => (prevId === id ? 0 : id))
-            }
+            onValueChange={() => handleSelectPackage(id)}
             value={isServicePacks === id}
           />
         </View>
+        {isServicePacks === 5 && id === 5 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateContainer}
+            ref={scrollViewRef}
+            onMomentumScrollEnd={handleScroll}>
+            {[...Array(30).keys()].map(i => {
+              const day = new Date();
+              day.setDate(day.getDate() + i);
+              const positionDate =
+                codeWork.indexOf(formatTimestamp(day)) !== -1 ? true : false;
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.dateBox, positionDate && styles.selectedDate]}
+                  onPress={() => handleChooseDay(day)}>
+                  <Text style={styles.dateText}>
+                    {day
+                      .toLocaleDateString('vi-VN', {weekday: 'short'})
+                      .toUpperCase()}
+                  </Text>
+                  <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                    day.getMonth() + 1
+                  }`}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
     );
   };
 
   useEffect(() => {
-    const {days, totalFunds} = cashRegister(
-      inforService.Price,
-      quantity,
-      time,
-      isServicePacks,
-      dateSelect,
-    );
-    setTotal(totalFunds);
-    setDays(days);
-  }, [time, quantity, isServicePacks, dateSelect, dispatch]);
+    if (isServicePacks !== 5) {
+      const {days, totalFunds, code} = cashRegister(
+        inforService.Price,
+        quantity,
+        time,
+        isServicePacks,
+        dateSelect,
+      );
+      setTotal(totalFunds);
+      setDays(days);
+      setCodeWork(code);
+    } else {
+      const totalFunds = cashRegisterCustom(
+        inforService.Price,
+        quantity,
+        time,
+        codeWork.length,
+      );
+      setTotal(totalFunds);
+    }
+  }, [time, quantity, isServicePacks, dateSelect]);
   const servicePacks =
     inforService?.isServicePacks?.split(',')?.map(Number) || [];
   useEffect(() => {
@@ -291,37 +387,41 @@ const Repurchase = props => {
         <View>
           <Text style={styles.bodyTitle}>Thời gian làm việc</Text>
           <View style={{marginLeft: 10}}>
-            <Text style={styles.bodyLabel}>Chọn ngày làm</Text>
-            <View style={styles.dateContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.dateContainer}>
-                {[...Array(30).keys()].map(i => {
-                  const day = new Date();
-                  day.setDate(day.getDate() + i);
-                  return (
-                    <TouchableOpacity
-                      key={i}
-                      style={[
-                        styles.dateBox,
-                        dateSelect.getDate() === day.getDate() &&
-                          styles.selectedDate,
-                      ]}
-                      onPress={() => setDateSelect(day)}>
-                      <Text style={styles.dateText}>
-                        {day
-                          .toLocaleDateString('vi-VN', {weekday: 'short'})
-                          .toUpperCase()}
-                      </Text>
-                      <Text style={styles.dateNumber}>{`${day.getDate()}/${
-                        day.getMonth() + 1
-                      }`}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+            {isServicePacks !== 5 && (
+              <View>
+                <Text style={styles.bodyLabel}>Chọn ngày làm</Text>
+                <View style={styles.dateContainer}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.dateContainer}>
+                    {[...Array(30).keys()].map(i => {
+                      const day = new Date();
+                      day.setDate(day.getDate() + i);
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          style={[
+                            styles.dateBox,
+                            dateSelect.getDate() === day.getDate() &&
+                              styles.selectedDate,
+                          ]}
+                          onPress={() => setDateSelect(day)}>
+                          <Text style={styles.dateText}>
+                            {day
+                              .toLocaleDateString('vi-VN', {weekday: 'short'})
+                              .toUpperCase()}
+                          </Text>
+                          <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                            day.getMonth() + 1
+                          }`}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              </View>
+            )}
             <View style={styles.section}>
               <Text style={styles.bodyLabel}>Chọn giờ làm</Text>
               <TouchableOpacity
