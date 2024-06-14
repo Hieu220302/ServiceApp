@@ -43,7 +43,6 @@ const Repurchase = props => {
   const [time, setTime] = useState(inforOrder?.Duration);
   const [quantity, setQuantity] = useState(inforOrder?.Quantity);
   const [location, setLocation] = useState(inforOrder?.Address || '');
-  const [date, setDate] = useState(new Date());
   const [dateSelect, setDateSelect] = useState(new Date());
   const [timeSelect, setTimeSelect] = useState(new Date());
   const [days, setDays] = useState(1);
@@ -188,17 +187,19 @@ const Repurchase = props => {
   const ServicePackage = ({id}) => {
     const name = dataServicePackage?.find(pack => pack.id === id)?.Name;
     return (
-      <View style={styles.bodyPack}>
-        <Text style={styles.bodyTitle}>{name}</Text>
-        <Switch
-          trackColor={{false: '#767577', true: '#f26522'}}
-          thumbColor="#f4f3f4"
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={() =>
-            setIsServicePacks(prevId => (prevId === id ? 0 : id))
-          }
-          value={isServicePacks === id}
-        />
+      <View>
+        <View style={styles.bodyPack}>
+          <Text style={styles.bodyTitle}>{name}</Text>
+          <Switch
+            trackColor={{false: '#767577', true: '#f26522'}}
+            thumbColor="#f4f3f4"
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={() =>
+              setIsServicePacks(prevId => (prevId === id ? 0 : id))
+            }
+            value={isServicePacks === id}
+          />
+        </View>
       </View>
     );
   };
@@ -214,7 +215,8 @@ const Repurchase = props => {
     setTotal(totalFunds);
     setDays(days);
   }, [time, quantity, isServicePacks, dateSelect, dispatch]);
-  const servicePacks = inforService?.isServicePacks.split(',')?.map(Number);
+  const servicePacks =
+    inforService?.isServicePacks?.split(',')?.map(Number) || [];
   useEffect(() => {
     dispatch(servicePackage());
   }, [dispatch]);
@@ -297,7 +299,7 @@ const Repurchase = props => {
                 contentContainerStyle={styles.dateContainer}>
                 {[...Array(30).keys()].map(i => {
                   const day = new Date();
-                  day.setDate(date.getDate() + i);
+                  day.setDate(day.getDate() + i);
                   return (
                     <TouchableOpacity
                       key={i}
