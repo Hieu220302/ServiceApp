@@ -260,7 +260,12 @@ const HomeStaff = () => {
       console.log(error);
     }
   };
-
+  const parseDate = dateStr => {
+    const day = dateStr.substring(0, 2);
+    const month = dateStr.substring(2, 4);
+    const year = '20' + dateStr.substring(4, 6);
+    return new Date(year, month - 1, day);
+  };
   const CalendarWork = () => {
     if (dataOrderServiceByIdStaff?.length > 0) {
       let listWork = [];
@@ -361,6 +366,7 @@ const HomeStaff = () => {
                   )?.Name || 'Không đăng ký gói dịch vụ';
                 const time = convertToVietnamTime(inforOrder?.Time);
                 const isShow = checkTime(inforOrder?.Time);
+                const codeWork = convertStrToArr(inforOrder?.code);
                 return (
                   <View key={index} style={styles.inforWork}>
                     <View style={styles.inforWorkLeft}>
@@ -387,9 +393,41 @@ const HomeStaff = () => {
                       <Text style={styles.inforText}>
                         Số liên hệ: {customer?.Phone_number}
                       </Text>
-                      <Text style={styles.inforText}>
-                        Số ngày làm còn lại: {inforOrder?.days} ngày
-                      </Text>
+                      <View>
+                        <Text style={styles.inforText}>
+                          Số ngày làm còn lại: {inforOrder?.days} ngày
+                        </Text>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.dateContainer}>
+                          {codeWork?.map((code, index) => {
+                            const day = parseDate(code);
+                            return (
+                              <View
+                                key={index}
+                                style={[
+                                  styles.dateBox,
+                                  true && styles.selectedDate,
+                                ]}>
+                                <Text style={styles.dateText}>
+                                  {day
+                                    .toLocaleDateString('vi-VN', {
+                                      weekday: 'short',
+                                    })
+                                    .toUpperCase()}
+                                </Text>
+                                <Text
+                                  style={
+                                    styles.dateNumber
+                                  }>{`${day.getDate()}/${
+                                  day.getMonth() + 1
+                                }`}</Text>
+                              </View>
+                            );
+                          })}
+                        </ScrollView>
+                      </View>
                       <Text style={styles.inforText}>
                         Ghi chú: {inforOrder?.Notes || 'Chưa có ghi chú'}
                       </Text>

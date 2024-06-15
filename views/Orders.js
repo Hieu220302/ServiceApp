@@ -110,17 +110,40 @@ const Orders = () => {
   );
 };
 
+const formatDate = (dateSelect, timeSelect) => {
+  const year = dateSelect.getFullYear();
+  const month = String(dateSelect.getMonth() + 1).padStart(2, '0');
+  const day = String(dateSelect.getDate()).padStart(2, '0');
+  const hours = String(timeSelect.getHours()).padStart(2, '0');
+  const minutes = String(timeSelect.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
 const changeStateOrder = async (
   id,
   State,
   changeState,
   setChangeState,
   days,
+  codeWork,
+  time,
 ) => {
   try {
+    console.log(codeWork);
     if (State === 4) {
       days = days - 1;
-      if (days !== 0) State = 3;
+
+      if (days !== 0) {
+        State = 3;
+        let code = convertStrToArr(codeWork);
+        let dateChange = formatDate(parseDate(code[1]), new Date(time));
+        code = codeWork.split(',');
+        code.splice(0, 1);
+        codeWork = code.join(',');
+      } else {
+        codeWork = '';
+      }
     }
     const response = await changeStateOrderService(id, State, days);
     setChangeState(!changeState);
@@ -129,14 +152,30 @@ const changeStateOrder = async (
   }
 };
 
-const ItemButton = ({id, state, changeState, setChangeState, days}) => {
+const ItemButton = ({
+  id,
+  state,
+  changeState,
+  setChangeState,
+  days,
+  codeWork,
+  time,
+}) => {
   const navigation = useNavigation();
   if (state === 2) {
     return (
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          changeStateOrder(id, 1, changeState, setChangeState, days)
+          changeStateOrder(
+            id,
+            1,
+            changeState,
+            setChangeState,
+            days,
+            codeWork,
+            time,
+          )
         }>
         <Text style={styles.buttonText}>Hủy đơn</Text>
       </TouchableOpacity>
@@ -146,7 +185,15 @@ const ItemButton = ({id, state, changeState, setChangeState, days}) => {
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          changeStateOrder(id, 4, changeState, setChangeState, days)
+          changeStateOrder(
+            id,
+            4,
+            changeState,
+            setChangeState,
+            days,
+            codeWork,
+            time,
+          )
         }>
         <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
       </TouchableOpacity>
@@ -162,13 +209,35 @@ const ItemButton = ({id, state, changeState, setChangeState, days}) => {
         <TouchableOpacity
           style={styles.button}
           onPress={() =>
-            changeStateOrder(id, 0, changeState, setChangeState, days)
+            changeStateOrder(
+              id,
+              0,
+              changeState,
+              setChangeState,
+              days,
+              codeWork,
+              time,
+            )
           }>
           <Text style={styles.buttonText}>Xóa</Text>
         </TouchableOpacity>
       </View>
     );
   }
+};
+
+const convertStrToArr = string => {
+  if (string === '') return [];
+  const arr = string.split(',');
+  const result = arr.map(item => item.split('_')[1]);
+  return result;
+};
+
+const parseDate = dateStr => {
+  const day = dateStr.substring(0, 2);
+  const month = dateStr.substring(2, 4);
+  const year = '20' + dateStr.substring(4, 6);
+  return new Date(year, month - 1, day);
 };
 
 const InforOrder = ({inforOrder, changeState, setChangeState}) => {
@@ -193,6 +262,7 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
     dataServicePackage.find(pack => pack.id === inforOrder.isServicePacks)
       ?.Name || 'Không đăng ký gói dịch vụ';
   const [isExpand, setIsExpand] = useState(false);
+  const codeWork = convertStrToArr(inforOrder?.code);
   const staff = dataInforStaff?.find(staff => staff.id === inforOrder.id_staff);
   return (
     <View style={styles.inforOrder}>
@@ -222,9 +292,33 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
                 </Text>
               </>
             )}
-            <Text style={styles.inforText}>
-              Số ngày làm còn lại: {inforOrder?.days} ngày
-            </Text>
+            <View>
+              <Text style={styles.inforText}>
+                Số ngày làm còn lại: {inforOrder?.days} ngày
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.dateContainer}>
+                {codeWork?.map((code, index) => {
+                  const day = parseDate(code);
+                  return (
+                    <View
+                      key={index}
+                      style={[styles.dateBox, true && styles.selectedDate]}>
+                      <Text style={styles.dateText}>
+                        {day
+                          .toLocaleDateString('vi-VN', {weekday: 'short'})
+                          .toUpperCase()}
+                      </Text>
+                      <Text style={styles.dateNumber}>{`${day.getDate()}/${
+                        day.getMonth() + 1
+                      }`}</Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
             <Text style={styles.inforText}>
               Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
             </Text>
@@ -245,11 +339,15 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
           changeState={changeState}
           setChangeState={setChangeState}
           days={inforOrder?.days}
+          codeWork={inforOrder?.code}
+          time={inforOrder?.Time}
         />
-        <TouchableOpacity onPress={() => setIsExpand(!isExpand)}>
-          {isExpand && <Icons name="up" style={styles.iconExpand} />}
-          {!isExpand && <Icons name="down" style={styles.iconExpand} />}
-        </TouchableOpacity>
+        <View style={styles.group_button}>
+          <TouchableOpacity onPress={() => setIsExpand(!isExpand)}>
+            {isExpand && <Icons name="up" style={styles.iconExpand} />}
+            {!isExpand && <Icons name="down" style={styles.iconExpand} />}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -287,6 +385,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  group_button: {
+    alignItems: 'flex-end',
+  },
   button: {
     backgroundColor: '#00a800',
     paddingVertical: 5,
@@ -295,7 +396,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 125,
-    marginBottom: 50,
   },
   buttonText: {
     color: '#fff',
@@ -316,17 +416,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     width: 500,
   },
+  dateContainer: {
+    flexDirection: 'row',
+  },
   inforOrderLeft: {
+    flexDirection: 'column',
     justifyContent: 'center',
+    width: 500,
   },
   inforOrderRight: {
+    width: 125,
     justifyContent: 'space-between',
   },
   iconExpand: {
-    position: 'absolute',
     fontSize: 30,
-    bottom: 0,
-    right: 0,
+  },
+  dateBox: {
+    alignItems: 'center',
+    padding: 10,
+    width: 70,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  selectedDate: {
+    backgroundColor: '#ff9800',
   },
 });
 
