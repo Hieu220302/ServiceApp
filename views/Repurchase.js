@@ -5,9 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   TextInput,
-  Button,
   Switch,
   Modal,
 } from 'react-native';
@@ -20,10 +18,8 @@ import {toastError, toastSuccess} from '../components/toastCustom';
 import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
-import {orderServiceByIdUser} from '../redux/reducers/orderService/orderServiceByIdUser';
 
 const Repurchase = props => {
-  //console.log(props);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {dataInforService} = useSelector(state => state.inforService);
@@ -40,7 +36,6 @@ const Repurchase = props => {
     const idInforService = inforOrder.id_service;
     return dataInforService?.find(item => item.id === idInforService);
   });
-  //console.log(inforOrder, 'HHH:', inforService);
   const [time, setTime] = useState(inforOrder?.Duration);
   const [quantity, setQuantity] = useState(inforOrder?.Quantity);
   const [location, setLocation] = useState(inforOrder?.Address || '');

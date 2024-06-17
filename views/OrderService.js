@@ -322,7 +322,7 @@ const OrderService = props => {
   }, [dispatch]);
   let dateBefore = new Date();
   dateBefore = new Date(dateBefore.setDate(dateSelect.getDate() - 1));
-  console.log(dateBefore);
+
   return (
     <View style={styles.container}>
       {isOpenModal && (

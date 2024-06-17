@@ -130,7 +130,6 @@ const RegisterOrders = () => {
           }
         }
       }
-      console.log(freeTime, result);
       let response = await changeRegistrationTime(id_staff, freeTime, result);
       response = await changeOrderByStaff(id, 3, id_staff);
       if (response?.errno) {
@@ -162,7 +161,6 @@ const RegisterOrders = () => {
   };
 
   const compareDateStrings = (str1, str2, id_group_service) => {
-    console.log(id_group_service);
     const array1 = str1.split(',');
     const array2 = str2.split(',');
     for (const item1 of array1) {
@@ -290,7 +288,6 @@ const RegisterOrders = () => {
         <View style={styles.body}>
           <ScrollView>
             {dataOrderServiceByIdGroup?.map((inforOrder, index) => {
-              console.log(dataOrderServiceByIdGroup);
               const positionDate = compareDateStrings(
                 workTime,
                 inforOrder?.code,
