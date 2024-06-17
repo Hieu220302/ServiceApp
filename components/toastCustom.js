@@ -20,7 +20,11 @@ export const toastConfig = {
       text2Style={{
         fontSize: 14,
         color: 'black',
+        flexWrap: 'wrap',
+        flexShrink: 1,
       }}
+      text2NumberOfLines={null}
+      text2EllipsizeMode="clip"
     />
   ),
   error: props => (
@@ -35,7 +39,11 @@ export const toastConfig = {
       text2Style={{
         fontSize: 14,
         color: 'black',
+        flexWrap: 'wrap',
+        flexShrink: 1,
       }}
+      text2NumberOfLines={null}
+      text2EllipsizeMode="clip"
     />
   ),
 };
@@ -50,6 +58,7 @@ export function toastError(text1, text2, time = 5000) {
     visibilityTime: time,
   });
 }
+
 export function toastSuccess(text1, text2, time = 3000) {
   Toast.show({
     type: 'success',

@@ -109,7 +109,6 @@ const RegisterOrders = () => {
         let time = freeTime.split(',');
         let arrCode = code.split(',');
         let position = -1;
-        let i = 0;
         for (let i = 0; i < checkDay.length; i++) {
           position = checkFreeTime.indexOf(checkDay[i]);
           if (position !== -1) {
@@ -162,7 +161,8 @@ const RegisterOrders = () => {
     );
   };
 
-  const compareDateStrings = (str1, str2) => {
+  const compareDateStrings = (str1, str2, id_group_service) => {
+    console.log(id_group_service);
     const array1 = str1.split(',');
     const array2 = str2.split(',');
     for (const item1 of array1) {
@@ -290,9 +290,11 @@ const RegisterOrders = () => {
         <View style={styles.body}>
           <ScrollView>
             {dataOrderServiceByIdGroup?.map((inforOrder, index) => {
+              console.log(dataOrderServiceByIdGroup);
               const positionDate = compareDateStrings(
                 workTime,
                 inforOrder?.code,
+                inforOrder?.id_group_service,
               );
               if (positionDate) {
                 return <InforOrder inforOrder={inforOrder} key={index} />;

@@ -9,6 +9,7 @@ import {
   TextInput,
   Button,
   Switch,
+  Modal,
 } from 'react-native';
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
@@ -43,6 +44,8 @@ const OrderService = props => {
   const [isServicePacks, setIsServicePacks] = useState(0);
   const [codeWork, setCodeWork] = useState([]);
   const scrollViewRef = useRef(null);
+  const [checkOrder, setCheckOrder] = useState(false);
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
@@ -145,23 +148,34 @@ const OrderService = props => {
     else if (!location)
       toastError('Lỗi đặt đơn', 'Bạn hãy kiểm tra lại địa chỉ');
     else {
-      let duration = 0;
-      let dataQuantity = 0;
-      if (inforService.hasTime) duration = time;
-      if (inforService.hasQuantity) dataQuantity = quantity;
-      let code = '';
-      if (isServicePacks === 0) {
-        code = `${compareTime(
-          convertToVietnamTime(timeSelect),
-        )}_${formatTimestamp(dateSelect)}`;
-      } else {
-        code = codeWork
-          .map(
-            date => `${compareTime(convertToVietnamTime(timeSelect))}_${date}`,
-          )
-          .join(',');
-      }
       if (new Date() < new Date(formatDate(dateSelect, timeSelect))) {
+        setIsOpenModal(true);
+      } else {
+        toastError('Lỗi đặt đơn', 'Bạn hãy kiểm tra lại thời gian đặt đơn');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (checkOrder) {
+        let duration = 0;
+        let dataQuantity = 0;
+        if (inforService.hasTime) duration = time;
+        if (inforService.hasQuantity) dataQuantity = quantity;
+        let code = '';
+        if (isServicePacks === 0) {
+          code = `${compareTime(
+            convertToVietnamTime(timeSelect),
+          )}_${formatTimestamp(dateSelect)}`;
+        } else {
+          code = codeWork
+            .map(
+              date =>
+                `${compareTime(convertToVietnamTime(timeSelect))}_${date}`,
+            )
+            .join(',');
+        }
         const response = await postOrderService(
           dataLogin?.id,
           location,
@@ -184,11 +198,10 @@ const OrderService = props => {
           toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
           navigation.navigate('Orders');
         }
-      } else {
-        toastError('Lỗi đặt đơn', 'Bạn hãy kiểm tra lại thời gian đặt đơn');
       }
-    }
-  };
+    };
+    fetchData();
+  }, [checkOrder]);
 
   const handleChooseDay = day => {
     const dateSelected = formatTimestamp(day);
@@ -307,8 +320,49 @@ const OrderService = props => {
     dispatch(servicePackage());
     dispatch(inforUser(dataLogin?.id));
   }, [dispatch]);
+  let dateBefore = new Date();
+  dateBefore = new Date(dateBefore.setDate(dateSelect.getDate() - 1));
+  console.log(dateBefore);
   return (
     <View style={styles.container}>
+      {isOpenModal && (
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={isOpenModal}
+          onRequestClose={() => setIsOpenModal(false)}>
+          <View style={styles.overlayDate}>
+            <View style={styles.modalViewDate}>
+              <Text style={styles.textNote}>
+                Lưu ý: Khi đặt đơn hoàn thành thì trường hợp khi có nhân viên đã
+                nhận đơn khi muốn hủy đơn phải cách thời điểm làm việc của đơn
+                24 giờ (thời điểm làm việc là:
+                {` ${convertToVietnamTime(
+                  formatDate(dateSelect, timeSelect),
+                )} `}
+                thì phải hủy trước
+                {` ${convertToVietnamTime(formatDate(dateBefore, timeSelect))}`}
+                ).
+              </Text>
+              <View style={styles.group_button}>
+                <TouchableOpacity
+                  style={styles.buttonConfirm}
+                  onPress={() => {
+                    setIsOpenModal(false);
+                    setCheckOrder(true);
+                  }}>
+                  <Text style={styles.buttonConfirmText}>Đặt đơn</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.buttonConfirm}
+                  onPress={() => setIsOpenModal(false)}>
+                  <Text style={styles.buttonConfirmText}>Quay lại</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Icons name="left" style={styles.iconHeader} />
@@ -520,6 +574,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  buttonConfirm: {
+    backgroundColor: '#00a800',
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 125,
+    marginRight: 20,
+  },
+  buttonConfirmText: {
+    color: '#fff',
+    fontSize: 20,
+    textAlign: 'center',
+    fontWeight: '800',
+  },
   input: {
     padding: 0,
     fontSize: 20,
@@ -600,6 +670,36 @@ const styles = StyleSheet.create({
   nextButtonText: {
     color: '#fff',
     fontSize: 20,
+    fontWeight: 'bold',
+  },
+  overlayDate: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalViewDate: {
+    width: 500,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  group_button: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  textNote: {
+    fontSize: 24,
+    color: '#f26522',
+    marginBottom: 30,
     fontWeight: 'bold',
   },
 });

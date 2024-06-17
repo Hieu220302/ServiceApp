@@ -28,6 +28,7 @@ import {inforCustomer} from '../redux/reducers/Users/inforCustomer';
 import changeOrderByStaff from '../api/orderService/changeOrderByStaff';
 import {inforStaffById} from '../redux/reducers/staff/staffById';
 import changeFreeTime from '../api/staff/changeFreeTime';
+import cancelStaff from '../api/orderService/cancelStaff';
 const HomeStaff = () => {
   const {dataLogin} = useSelector(state => state.login);
   const {dataInforUser} = useSelector(state => state.inforUser);
@@ -249,11 +250,14 @@ const HomeStaff = () => {
 
   const cancelOrder = async id => {
     try {
-      const response = await changeOrderByStaff(id, 2, null);
+      const response = await cancelStaff(id);
       if (response?.errno) {
         toastError('Lỗi huỷ đơn', 'Hệ thống có lỗi xin bạn hãy huỷ đơn lại');
       } else {
-        toastSuccess('Xác nhận huỷ đơn', 'Bạn đã huỷ đơn thành công');
+        toastSuccess(
+          'Xác nhận huỷ đơn',
+          'Bạn đã đăng ký huỷ đơn thành công chờ xác nhận',
+        );
         dispatch(orderServiceByIdStaff(dataLogin?.id));
       }
     } catch (error) {
@@ -365,7 +369,9 @@ const HomeStaff = () => {
                     pack => pack.id === inforOrder?.isServicePacks,
                   )?.Name || 'Không đăng ký gói dịch vụ';
                 const time = convertToVietnamTime(inforOrder?.Time);
-                const isShow = checkTime(inforOrder?.Time);
+                const isShow =
+                  checkTime(inforOrder?.Time) && !inforOrder?.staffCancel;
+
                 const codeWork = convertStrToArr(inforOrder?.code);
                 return (
                   <View key={index} style={styles.inforWork}>

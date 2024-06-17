@@ -15,6 +15,9 @@ import Icons from 'react-native-vector-icons/AntDesign';
 import {inforStaff} from '../redux/reducers/staff/staffByCustomer';
 import changeStateOrderService from '../api/orderService/changeStateOrderService';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
+import changeCompletedOrder from '../api/orderService/changeCompletedOrder';
+import changeRegistrationTime from '../api/staff/changeRegistrationTime';
+import changeOrderByStaff from '../api/orderService/changeOrderByStaff';
 
 const Orders = () => {
   const navigation = useNavigation();
@@ -128,28 +131,63 @@ const changeStateOrder = async (
   days,
   codeWork,
   time,
+  completedDate,
+  timeWork,
+  freeTime,
+  id_staff,
 ) => {
   try {
-    console.log(codeWork);
+    let code = convertStrToArr(codeWork);
+    let dateChange = formatDate(parseDate(code[0]), new Date(time));
+    if (code.length > 1)
+      dateChange = formatDate(parseDate(code[1]), new Date(time));
     if (State === 4) {
       days = days - 1;
-
+      code = codeWork.split(',');
+      if (completedDate?.length > 0)
+        completedDate = `${completedDate},${code[0]}`;
+      else completedDate = `${code[0]}`;
       if (days !== 0) {
         State = 3;
-        let code = convertStrToArr(codeWork);
-        let dateChange = formatDate(parseDate(code[1]), new Date(time));
-        code = codeWork.split(',');
         code.splice(0, 1);
         codeWork = code.join(',');
       } else {
         codeWork = '';
       }
     }
-    const response = await changeStateOrderService(id, State, days);
+    let response;
+    if (State === 1) {
+      let checkTimeWork = timeWork?.split(',') || [];
+      let checkDay = codeWork?.split(',') || [];
+      for (let i = 0; i < checkDay.length; i++) {
+        position = checkTimeWork.indexOf(checkDay[i]);
+        if (position !== -1) checkTimeWork.splice(position, 1);
+      }
+      timeWork = checkTimeWork.join(',');
+
+      response = await changeRegistrationTime(id_staff, freeTime, timeWork);
+      response = await changeOrderByStaff(id, 2, null);
+    }
+    response = await changeStateOrderService(id, State, days);
+    if (State >= 3)
+      response = await changeCompletedOrder(
+        id,
+        dateChange,
+        codeWork,
+        completedDate,
+      );
     setChangeState(!changeState);
   } catch (error) {
     console.log(error);
   }
+};
+
+const checkTime = (time, x) => {
+  const timeObj = new Date(time);
+  timeObj.setHours(timeObj.getHours() + x);
+  const currentTime = new Date();
+  if (x > 0) return timeObj <= currentTime;
+  else return timeObj >= currentTime;
 };
 
 const ItemButton = ({
@@ -160,9 +198,18 @@ const ItemButton = ({
   days,
   codeWork,
   time,
+  completedDate,
+  Duration,
+  timeWork,
+  freeTime,
+  id_staff,
 }) => {
   const navigation = useNavigation();
-  if (state === 2) {
+
+  if (
+    state === 2 ||
+    (state === 3 && checkTime(time, -24) && !completedDate?.length)
+  ) {
     return (
       <TouchableOpacity
         style={styles.button}
@@ -175,6 +222,10 @@ const ItemButton = ({
             days,
             codeWork,
             time,
+            completedDate,
+            timeWork,
+            freeTime,
+            id_staff,
           )
         }>
         <Text style={styles.buttonText}>Hủy đơn</Text>
@@ -182,21 +233,26 @@ const ItemButton = ({
     );
   } else if (state === 3) {
     return (
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          changeStateOrder(
-            id,
-            4,
-            changeState,
-            setChangeState,
-            days,
-            codeWork,
-            time,
-          )
-        }>
-        <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
-      </TouchableOpacity>
+      <View>
+        {checkTime(time, Duration) && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              changeStateOrder(
+                id,
+                4,
+                changeState,
+                setChangeState,
+                days,
+                codeWork,
+                time,
+                completedDate,
+              )
+            }>
+            <Text style={styles.buttonText}>Xác nhận hoàn thành</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   } else {
     return (
@@ -264,6 +320,7 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
   const [isExpand, setIsExpand] = useState(false);
   const codeWork = convertStrToArr(inforOrder?.code);
   const staff = dataInforStaff?.find(staff => staff.id === inforOrder.id_staff);
+
   return (
     <View style={styles.inforOrder}>
       <View style={styles.inforOrderLeft}>
@@ -341,6 +398,11 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
           days={inforOrder?.days}
           codeWork={inforOrder?.code}
           time={inforOrder?.Time}
+          completedDate={inforOrder?.completedDate}
+          Duration={inforOrder?.Duration}
+          timeWork={staff?.Registration_Time}
+          freeTime={staff?.Free_time}
+          id_staff={staff?.id}
         />
         <View style={styles.group_button}>
           <TouchableOpacity onPress={() => setIsExpand(!isExpand)}>
