@@ -11,6 +11,7 @@ const updateUser = async props => {
       Address: props.Address,
       Phone_number: props.Phone_number,
       Email: props.Email,
+      Image: props.Image,
       Updated_at: props.Updated_at,
     });
     return response.data;

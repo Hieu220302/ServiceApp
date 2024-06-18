@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 280,
+    marginRight: 20,
   },
   headerText: {
     fontSize: 25,
@@ -270,10 +270,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 22,
     fontWeight: 'bold',
+    color: '#000',
     width: 250,
   },
   textInput: {
     width: '100%',
+    color: '#000',
     paddingHorizontal: 10,
     paddingVertical: 0,
     fontSize: 20,

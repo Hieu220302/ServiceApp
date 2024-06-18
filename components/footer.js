@@ -32,7 +32,7 @@ const FooterItem = ({name, title, page}) => {
     <TouchableOpacity
       style={styles.footerItem}
       onPress={() => navigation.navigate(page)}>
-      <Icons name={name} style={{fontSize: 30}} />
+      <Icons name={name} style={{fontSize: 20, color: '#000'}} />
       <Text style={styles.footerItemText}>{title}</Text>
     </TouchableOpacity>
   );
@@ -50,8 +50,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerItemText: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: 'bold',
+    color: '#000',
   },
 });
 export default Footer;

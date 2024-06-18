@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 280,
+    marginRight: 20,
   },
   headerText: {
     fontSize: 25,
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     fontSize: 20,
+    color: '#000',
     fontWeight: 'bold',
   },
   button: {

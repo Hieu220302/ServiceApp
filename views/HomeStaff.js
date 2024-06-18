@@ -54,11 +54,14 @@ const HomeStaff = () => {
         !dataInforStaffId?.Free_time ? '' : dataInforStaffId?.Free_time,
       ),
     );
+    return () => {
+      setIsShowButton(false);
+    };
   }, [dataInforStaffId]);
   const convertStrToArr = freeTime => {
     if (freeTime === '') return [];
-    const arr = freeTime.split(',');
-    const result = arr.map(item => item.split('_')[1]);
+    const arr = freeTime?.split(',');
+    const result = arr?.map(item => item.split('_')[1]);
     return result;
   };
 
@@ -93,7 +96,7 @@ const HomeStaff = () => {
   };
   const scrollViewRef = useRef(null);
   const scrollX = useRef(null);
-  const [isShow, setIsShow] = useState(false);
+  const [isShowButton, setIsShowButton] = useState(false);
   const RegistrationSchedule = () => {
     const [date, setDate] = useState(() => {
       const day = new Date();
@@ -104,7 +107,7 @@ const HomeStaff = () => {
     const closeModalShift = () => {
       setIsOpenModal(false);
     };
-
+    console.log(isShowButton);
     const handleSelectDay = (day, isSelect) => {
       if (isSelect) {
         const checkDay = formatDateStamp(day);
@@ -113,7 +116,7 @@ const HomeStaff = () => {
         const time = freeTime.split(',');
         time.splice(positionDate, 1);
         setFreeTime(time.join(','));
-        setIsShow(true);
+        setIsShowButton(true);
       } else {
         setIsOpenModal(true);
         setDateSelect(day);
@@ -150,7 +153,7 @@ const HomeStaff = () => {
         return result;
       });
       closeModalShift();
-      setIsShow(true);
+      setIsShowButton(true);
     };
     const [isOpenModal, setIsOpenModal] = useState(false);
 
@@ -164,7 +167,7 @@ const HomeStaff = () => {
     };
 
     const handleUpdate = async () => {
-      setIsShow(false);
+      setIsShowButton(false);
       const res = await changeFreeTime({
         id: dataInforStaffId?.id,
         Free_time: freeTime,
@@ -235,7 +238,7 @@ const HomeStaff = () => {
             })}
           </ScrollView>
         </View>
-        {isShow && (
+        {isShowButton && (
           <View style={styles.viewUpdate}>
             <TouchableOpacity
               style={styles.buttonUpdate}
@@ -413,10 +416,10 @@ const HomeStaff = () => {
                               <View
                                 key={index}
                                 style={[
-                                  styles.dateBox,
+                                  styles.dateBoxWork,
                                   true && styles.selectedDate,
                                 ]}>
-                                <Text style={styles.dateText}>
+                                <Text style={styles.dateTextWork}>
                                   {day
                                     .toLocaleDateString('vi-VN', {
                                       weekday: 'short',
@@ -425,7 +428,7 @@ const HomeStaff = () => {
                                 </Text>
                                 <Text
                                   style={
-                                    styles.dateNumber
+                                    styles.dateNumberWork
                                   }>{`${day.getDate()}/${
                                   day.getMonth() + 1
                                 }`}</Text>
@@ -469,15 +472,23 @@ const HomeStaff = () => {
         </View>
       );
   };
-
+  const defaultImage =
+    'http://res.cloudinary.com/dmgiwjxch/image/upload/v1718724523/f29b36d6dc8d7be709db6ac04cbd57e2.jpg';
+  const [imageSelected, setImageSelected] = useState(
+    dataInforUser?.Image || defaultImage,
+  );
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Xin chào bạn ngày mới tốt lành</Text>
 
         <TouchableOpacity style={styles.headerRight} onPress={openModal}>
-          <Icons name="user" style={{fontSize: 60}} />
-
+          <Image
+            source={{
+              uri: imageSelected,
+            }}
+            style={{width: 40, height: 40, borderRadius: 100}}
+          />
           {dataLogin?.id && (
             <Text style={styles.headerText}>{dataInforUser?.Name}</Text>
           )}
@@ -492,12 +503,15 @@ const HomeStaff = () => {
             <TouchableWithoutFeedback onPress={closeModal}>
               <View style={styles.overlay}>
                 <View
-                  style={[styles.modalView, {top: dataLogin?.id ? 90 : 50}]}>
+                  style={[styles.modalView, {top: dataLogin?.id ? 70 : 40}]}>
                   {dataLogin?.id && (
                     <>
                       <TouchableOpacity
                         style={styles.closeButton}
-                        onPress={() => navigation.navigate('ChangeInfor')}>
+                        onPress={() => {
+                          closeModal();
+                          navigation.navigate('ChangeInfor');
+                        }}>
                         <Text style={styles.textStyle}>
                           Chỉnh sửa thông tin
                         </Text>
@@ -505,7 +519,10 @@ const HomeStaff = () => {
                       {dataInforUser?.Id_role === 1 && (
                         <TouchableOpacity
                           style={styles.closeButton}
-                          onPress={() => navigation.navigate('Home')}>
+                          onPress={() => {
+                            closeModal();
+                            navigation.navigate('Home');
+                          }}>
                           <Text style={styles.textStyle}>
                             Chuyển qua giao diện khách hàng
                           </Text>
@@ -558,7 +575,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -580,18 +597,27 @@ const styles = StyleSheet.create({
   },
   buttonTextUpdate: {
     color: '#fff',
-    fontSize: 30,
+    fontSize: 18,
     textAlign: 'center',
     fontWeight: '800',
   },
   noticeText: {
-    fontSize: 20,
+    fontSize: 15,
     marginBottom: 20,
+    color: '#000',
   },
   dateBox: {
     alignItems: 'center',
     padding: 10,
-    width: 70,
+    width: 60,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  dateBoxWork: {
+    alignItems: 'center',
+    padding: 5,
+    width: 50,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -600,25 +626,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff9800',
   },
   dateText: {
-    fontSize: 20,
+    fontSize: 15,
+    color: '#000',
+  },
+  dateTextWork: {
+    fontSize: 13,
+    color: '#000',
   },
   dateNumber: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
+    color: '#000',
+  },
+  dateNumberWork: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#000',
   },
   body: {
     padding: 20,
   },
   titleText: {
-    fontSize: 25,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#000',
   },
   inforWork: {
     paddingVertical: 10,
     borderColor: '#f26522',
     borderBottomWidth: 1,
     flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  inforWorkLeft: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    width: '78%',
+  },
+  inforWorkRight: {
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    width: '20%',
   },
   button: {
     backgroundColor: '#00a800',
@@ -627,62 +676,30 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 125,
-    marginBottom: 50,
   },
   buttonUpdate: {
     backgroundColor: '#00a800',
-    padding: 20,
+    padding: 10,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-
     marginBottom: 50,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: '800',
   },
   inforText: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: '700',
-    width: 500,
+    color: '#000',
   },
   textDate: {
-    fontSize: 24,
+    fontSize: 15,
     color: '#f26522',
-
     fontWeight: '700',
-  },
-  menuItem: {
-    flex: 1,
-    width: 50,
-    backgroundColor: '#fff',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  tab: {
-    color: '#999',
-    fontWeight: 'bold',
-    padding: 10,
-  },
-  activeTab: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ff8500',
-  },
-  tabText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  tabSelect: {
-    color: '#ff8500',
   },
   overlay: {
     flex: 1,
@@ -733,9 +750,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   textStyle: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
     marginVertical: 10,
+    color: '#000',
   },
 });
 

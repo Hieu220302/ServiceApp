@@ -20,12 +20,15 @@ import convertToVietnamTime from '../components/convertToVietnamTime';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 import updateUser from '../api/User/updateUser';
 import {inforUser} from '../redux/reducers/Users/inforUser';
+import axios from 'axios';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 const ChangeInfor = props => {
   const {dataLogin} = useSelector(state => state.login);
   const {dataInforUser} = useSelector(state => state.inforUser);
   const navigation = useNavigation();
-  //console.log(dataLogin);
+  const defaultImage =
+    'http://res.cloudinary.com/dmgiwjxch/image/upload/v1718724523/f29b36d6dc8d7be709db6ac04cbd57e2.jpg';
   const dispatch = useDispatch();
   const [name, setName] = useState(dataInforUser?.Name);
   const [location, setLocation] = useState(dataInforUser?.Address);
@@ -36,7 +39,9 @@ const ChangeInfor = props => {
   const DOBRef = useRef(null);
   const [show, setShow] = useState(false);
   const [errors, setErrors] = useState({});
-  // console.log(dataInforUser);
+  const [imageSelected, setImageSelected] = useState(
+    dataInforUser?.Image || defaultImage,
+  );
   useEffect(() => {
     dispatch(inforUser(dataLogin?.id));
   }, [dispatch]);
@@ -58,6 +63,7 @@ const ChangeInfor = props => {
     setEmail(dataInforUser?.Email);
     setPhoneNumber(dataInforUser?.Phone_number);
     setDOB(dataInforUser?.DOB);
+    setImageSelected(dataInforUser?.Image);
   };
 
   const validate = () => {
@@ -94,6 +100,7 @@ const ChangeInfor = props => {
         Email: email,
         Phone_number: phoneNumber,
         DOB: formatDateStamp(new Date(DOB)),
+        Image: imageSelected,
         Updated_at,
       });
       dispatch(inforUser(dataLogin?.id));
@@ -131,81 +138,136 @@ const ChangeInfor = props => {
     showDatepicker();
   };
 
+  const pickImage = () => {
+    launchImageLibrary({mediaType: 'photo'}, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        uploadImage({
+          uri: response.assets[0].uri,
+          type: response.assets[0].type,
+          name: response.assets[0].fileName,
+        });
+      }
+    });
+  };
+
+  const uploadImage = async photo => {
+    const formData = new FormData();
+    const CLOUDINARY_URL =
+      'https://api.cloudinary.com/v1_1/dmgiwjxch/image/upload';
+
+    formData.append('file', photo);
+    formData.append('upload_preset', 'gggimw6m2');
+    try {
+      const response = await fetch(CLOUDINARY_URL, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setImageSelected(data.secure_url);
+      } else {
+        console.error('Error uploading image to Cloudinary');
+      }
+    } catch (error) {
+      console.error('Error uploading image to Cloudinary:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icons name="left" style={styles.iconHeader} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Chỉnh sửa thông tin</Text>
       </View>
-      <View style={styles.body}>
-        <Text style={styles.bodyTitle}>Họ và tên:</Text>
-        <TextInput
-          style={styles.textInput}
-          value={name}
-          onChangeText={value => setName(value)}
-        />
-        {errors.name && <Text style={styles.error}>{errors.name}</Text>}
-        <Text style={styles.bodyTitle}>Căn cứ công dân:</Text>
-        <TextInput
-          style={styles.textInput}
-          value={CIC}
-          keyboardType="phone-pad"
-          onChangeText={value => setCIC(value)}
-        />
-        {errors.CIC && <Text style={styles.error}>{errors.CIC}</Text>}
-        <Text style={styles.bodyTitle}>Ngày sinh:</Text>
-        <TextInput
-          ref={DOBRef}
-          style={styles.textInput}
-          value={formatTimestamp(DOB)}
-          onFocus={handleFocus}
-        />
-        {errors.DOB && <Text style={styles.error}>{errors.DOB}</Text>}
-        <Text style={styles.bodyTitle}>Địa chỉ:</Text>
-        <TextInput
-          style={styles.textInput}
-          value={location}
-          onChangeText={value => setLocation(value)}
-        />
-        {errors.location && <Text style={styles.error}>{errors.location}</Text>}
-        <Text style={styles.bodyTitle}>Số điện thoại:</Text>
-        <TextInput
-          style={styles.textInput}
-          value={phoneNumber}
-          onChangeText={value => setPhoneNumber(value)}
-          keyboardType="phone-pad"
-        />
-        {errors.phoneNumber && (
-          <Text style={styles.error}>{errors.phoneNumber}</Text>
-        )}
-        <Text style={styles.bodyTitle}>Email:</Text>
-        <TextInput
-          style={styles.textInput}
-          value={email}
-          onChangeText={value => setEmail(value)}
-        />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-        {show && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={new Date(DOB)}
-            mode="date"
-            is24Hour={true}
-            display="spinner"
-            onChange={onChange}
+      <ScrollView>
+        <View style={styles.body}>
+          <View style={styles.viewImage}>
+            <Image
+              source={{
+                uri: imageSelected,
+              }}
+              style={{width: 200, height: 200, borderRadius: 100}}
+            />
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
+              <Text style={styles.textButton}>Thay ảnh </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.bodyTitle}>Họ và tên:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={name}
+            onChangeText={value => setName(value)}
           />
-        )}
-      </View>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={handleResetInfor}>
-          <Text style={styles.textButton}>Đặt lại thông tin</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleUpdateInfor}>
-          <Text style={styles.textButton}>Cập nhật</Text>
-        </TouchableOpacity>
-      </View>
+          {errors.name && <Text style={styles.error}>{errors.name}</Text>}
+          <Text style={styles.bodyTitle}>Căn cứ công dân:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={CIC}
+            keyboardType="phone-pad"
+            onChangeText={value => setCIC(value)}
+          />
+          {errors.CIC && <Text style={styles.error}>{errors.CIC}</Text>}
+          <Text style={styles.bodyTitle}>Ngày sinh:</Text>
+          <TextInput
+            ref={DOBRef}
+            style={styles.textInput}
+            value={formatTimestamp(DOB)}
+            onFocus={handleFocus}
+          />
+          {errors.DOB && <Text style={styles.error}>{errors.DOB}</Text>}
+          <Text style={styles.bodyTitle}>Địa chỉ:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={location}
+            onChangeText={value => setLocation(value)}
+          />
+          {errors.location && (
+            <Text style={styles.error}>{errors.location}</Text>
+          )}
+          <Text style={styles.bodyTitle}>Số điện thoại:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={phoneNumber}
+            onChangeText={value => setPhoneNumber(value)}
+            keyboardType="phone-pad"
+          />
+          {errors.phoneNumber && (
+            <Text style={styles.error}>{errors.phoneNumber}</Text>
+          )}
+          <Text style={styles.bodyTitle}>Email:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={email}
+            onChangeText={value => setEmail(value)}
+          />
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+          {show && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={new Date(DOB)}
+              mode="date"
+              is24Hour={true}
+              display="spinner"
+              onChange={onChange}
+            />
+          )}
+        </View>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.button} onPress={handleResetInfor}>
+            <Text style={styles.textButton}>Đặt lại thông tin</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleUpdateInfor}>
+            <Text style={styles.textButton}>Cập nhật</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -225,7 +287,7 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 240,
+    marginRight: 20,
   },
   headerText: {
     fontSize: 25,
@@ -240,6 +302,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     width: 250,
+    color: '#000',
+  },
+  viewImage: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textInput: {
     width: '100%',
@@ -250,6 +317,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     height: 40,
+    color: '#000',
   },
   footer: {
     flexDirection: 'row',
@@ -260,7 +328,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   button: {
-    marginHorizontal: 10,
+    margin: 10,
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,

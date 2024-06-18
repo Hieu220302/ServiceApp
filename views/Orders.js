@@ -258,7 +258,7 @@ const ItemButton = ({
     return (
       <View style={styles.groupButton}>
         <TouchableOpacity
-          style={[styles.button, {marginBottom: 10}]}
+          style={[styles.button, {marginBottom: 5}]}
           onPress={() => navigation.navigate('Repurchase', {id: id})}>
           <Text style={styles.buttonText}>Đặt lại</Text>
         </TouchableOpacity>
@@ -441,7 +441,8 @@ const styles = StyleSheet.create({
   description: {
     textAlign: 'center',
     marginBottom: 20,
-    fontSize: 18,
+    fontSize: 15,
+    color: '#000',
   },
   groupButton: {
     alignItems: 'center',
@@ -457,15 +458,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 125,
+    width: 80,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 13,
     textAlign: 'center',
     fontWeight: '800',
   },
   body: {flex: 1},
+  dateText: {
+    fontSize: 13,
+    color: '#000',
+  },
+  dateNumber: {
+    color: '#000',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
   inforOrder: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -474,9 +484,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   inforText: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: '700',
-    width: 500,
+    color: '#000',
   },
   dateContainer: {
     flexDirection: 'row',
@@ -484,19 +494,22 @@ const styles = StyleSheet.create({
   inforOrderLeft: {
     flexDirection: 'column',
     justifyContent: 'center',
-    width: 500,
+    width: '70%',
   },
   inforOrderRight: {
-    width: 125,
     justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    width: '30%',
   },
   iconExpand: {
-    fontSize: 30,
+    marginTop: 10,
+    fontSize: 20,
+    color: '#000',
   },
   dateBox: {
     alignItems: 'center',
-    padding: 10,
-    width: 70,
+    padding: 5,
+    width: 50,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',

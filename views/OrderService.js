@@ -496,6 +496,7 @@ const OrderService = props => {
           <TextInput
             style={styles.textInput}
             placeholder="Bạn có yêu cầu gì thêm, hãy nhập ở đây nhé"
+            placeholderTextColor="#000"
             multiline
             value={note}
             onChangeText={value => setNote(value)}
@@ -526,7 +527,7 @@ const styles = StyleSheet.create({
   iconHeader: {
     fontSize: 20,
     color: '#fff',
-    marginRight: 240,
+    marginRight: 20,
   },
   headerText: {
     fontSize: 25,
@@ -542,14 +543,16 @@ const styles = StyleSheet.create({
   },
   bodyTitle: {
     marginVertical: 10,
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     width: 250,
+    color: '#000',
   },
   bodyLabel: {
     marginVertical: 10,
-    fontSize: 20,
+    fontSize: 15,
     marginRight: 10,
+    color: '#000',
   },
   divTime: {
     borderRadius: 10,
@@ -562,8 +565,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   button: {
-    width: 50,
-    height: 40,
+    width: 40,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -571,8 +574,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   buttonText: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
+    color: '#000',
   },
   buttonConfirm: {
     backgroundColor: '#00a800',
@@ -586,25 +590,27 @@ const styles = StyleSheet.create({
   },
   buttonConfirmText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 18,
     textAlign: 'center',
     fontWeight: '800',
   },
   input: {
     padding: 0,
-    fontSize: 20,
+    fontSize: 15,
     textAlign: 'center',
     marginHorizontal: 5,
+    color: '#000',
   },
   inputLocation: {
     width: '100%',
     paddingHorizontal: 10,
     paddingVertical: 0,
-    fontSize: 20,
+    fontSize: 15,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     height: 40,
+    color: '#000',
   },
   dateContainer: {
     flexDirection: 'row',
@@ -612,7 +618,7 @@ const styles = StyleSheet.create({
   dateBox: {
     alignItems: 'center',
     padding: 10,
-    width: 70,
+    width: 60,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -621,10 +627,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff9800',
   },
   dateText: {
-    fontSize: 20,
+    fontSize: 15,
+    color: '#000',
   },
   dateNumber: {
-    fontSize: 20,
+    color: '#000',
+    fontSize: 15,
     fontWeight: 'bold',
   },
   section: {
@@ -640,13 +648,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    fontSize: 20,
+    color: '#000',
+    fontSize: 15,
   },
   textInput: {
     borderWidth: 1,
+    color: '#000',
     borderColor: '#ccc',
     borderRadius: 10,
-    fontSize: 20,
+    fontSize: 15,
     padding: 10,
     height: 200,
     textAlignVertical: 'top',
@@ -663,13 +673,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   priceText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
   nextButtonText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   overlayDate: {
@@ -678,7 +688,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalViewDate: {
-    width: 500,
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 10,
@@ -697,7 +706,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   textNote: {
-    fontSize: 24,
+    fontSize: 15,
     color: '#f26522',
     marginBottom: 30,
     fontWeight: 'bold',
