@@ -10,7 +10,9 @@ import {
   Button,
   Switch,
   Modal,
+  Linking,
 } from 'react-native';
+
 import Icons from 'react-native-vector-icons/AntDesign';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
@@ -21,6 +23,8 @@ import postOrderService from '../api/orderService/postOrderService';
 import convertToVietnamTime from '../components/convertToVietnamTime';
 import {servicePackage} from '../redux/reducers/servicePackage/servicePackage';
 import {inforUser} from '../redux/reducers/Users/inforUser';
+import payMomo from '../api/payMomo/payMomo';
+
 const OrderService = props => {
   const {dataInforService} = useSelector(state => state.inforService);
   const {dataServicePackage} = useSelector(state => state.servicePackage);
@@ -46,7 +50,7 @@ const OrderService = props => {
   const scrollViewRef = useRef(null);
   const [checkOrder, setCheckOrder] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
-
+  const [paymentMethods, setPaymentMethods] = useState(0);
   const handleQuantityIncrement = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
@@ -156,48 +160,64 @@ const OrderService = props => {
     }
   };
 
+  const postOrder = async () => {
+    let duration = 0;
+    let dataQuantity = 0;
+    if (inforService.hasTime) duration = time;
+    if (inforService.hasQuantity) dataQuantity = quantity;
+    let code = '';
+    if (isServicePacks === 0) {
+      code = `${compareTime(
+        convertToVietnamTime(timeSelect),
+      )}_${formatTimestamp(dateSelect)}`;
+    } else {
+      code = codeWork
+        .map(date => `${compareTime(convertToVietnamTime(timeSelect))}_${date}`)
+        .join(',');
+    }
+    const response = await postOrderService(
+      dataLogin?.id,
+      location,
+      formatDate(dateSelect, timeSelect),
+      duration,
+      dataQuantity,
+      inforService.id,
+      2,
+      note,
+      parseInt(total.replace(/\./g, ''), 10),
+      code,
+      isServicePacks,
+      days,
+      inforService.id_group,
+      paymentMethods,
+    );
+    if (response?.errno) {
+      toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
+      navigation.navigate('Home');
+    } else {
+      toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
+      navigation.navigate('Orders');
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (checkOrder) {
-        let duration = 0;
-        let dataQuantity = 0;
-        if (inforService.hasTime) duration = time;
-        if (inforService.hasQuantity) dataQuantity = quantity;
-        let code = '';
-        if (isServicePacks === 0) {
-          code = `${compareTime(
-            convertToVietnamTime(timeSelect),
-          )}_${formatTimestamp(dateSelect)}`;
-        } else {
-          code = codeWork
-            .map(
-              date =>
-                `${compareTime(convertToVietnamTime(timeSelect))}_${date}`,
-            )
-            .join(',');
+        if (paymentMethods === 1) {
+          let response = await payMomo(`${total.replace(/\./g, '')}`);
+          try {
+            const orderId = response.orderId;
+            const supported = await Linking?.canOpenURL(response.deeplink);
+            if (supported) {
+              response = await Linking?.openURL(response.deeplink);
+            } else {
+              console.log('Không thể mở ứng dụng MoMo');
+            }
+          } catch (error) {
+            console.error('Đã xảy ra lỗi khi mở ứng dụng MoMo', error);
+          }
         }
-        const response = await postOrderService(
-          dataLogin?.id,
-          location,
-          formatDate(dateSelect, timeSelect),
-          duration,
-          dataQuantity,
-          inforService.id,
-          2,
-          note,
-          parseInt(total.replace(/,/g, ''), 10),
-          code,
-          isServicePacks,
-          days,
-          inforService.id_group,
-        );
-        if (response?.errno) {
-          toastError('Lỗi đặt đơn', 'Hệ thống có lỗi xin bạn hãy đặt đơn lại');
-          navigation.navigate('Home');
-        } else {
-          toastSuccess('Xác nhận đặt đơn', 'Bạn đã đặt đơn thành công');
-          navigation.navigate('Orders');
-        }
+        postOrder();
       }
     };
     fetchData();
@@ -244,6 +264,7 @@ const OrderService = props => {
       scrollViewRef?.current?.scrollTo({x: scrollX.current, animated: true});
     }, []);
     const name = dataServicePackage?.find(pack => pack.id === id)?.Name;
+
     return (
       <View>
         <View style={styles.bodyPack}>
@@ -491,6 +512,27 @@ const OrderService = props => {
           servicePacks?.map((id, index) => (
             <ServicePackage id={id} key={index} />
           ))}
+        <View style={styles.groupPay}>
+          <Text style={[styles.bodyTitle]}>Phương thước thanh toán:</Text>
+          <View style={styles.groupButtonPay}>
+            <TouchableOpacity
+              style={[
+                styles.buttonPay,
+                paymentMethods === 0 && styles.selectedDate,
+              ]}
+              onPress={() => setPaymentMethods(0)}>
+              <Text style={styles.textPay}>Tiền mặt</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.buttonPay,
+                paymentMethods === 1 && styles.selectedDate,
+              ]}
+              onPress={() => setPaymentMethods(1)}>
+              <Text style={styles.textPay}>Momo</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <View>
           <Text style={styles.bodyTitle}>Ghi chú cho công việc</Text>
           <TextInput
@@ -547,6 +589,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     width: 250,
     color: '#000',
+  },
+  groupButtonPay: {flexDirection: 'cloum'},
+  groupPay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
   },
   bodyLabel: {
     marginVertical: 10,
@@ -640,6 +688,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  buttonPay: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
   timeBox: {
     padding: 10,
     borderRadius: 10,
@@ -648,6 +704,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
+    color: '#000',
+    fontSize: 15,
+  },
+  textPay: {
     color: '#000',
     fontSize: 15,
   },

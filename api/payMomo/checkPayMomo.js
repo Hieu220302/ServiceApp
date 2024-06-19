@@ -1,14 +1,15 @@
 import axios from 'axios';
 import {urlAPI} from '../apiAddress';
 
-const getInforUserById = async id => {
+const checkPayMomo = async orderId => {
   try {
-    const response = await axios.get(urlAPI + `users/${id}`);
-
+    const response = await axios.post(urlAPI + 'check-status-transaction', {
+      orderId: orderId,
+    });
     return response.data;
   } catch (error) {
     console.log('error sign in' + error.message);
   }
 };
 
-export default getInforUserById;
+export default checkPayMomo;

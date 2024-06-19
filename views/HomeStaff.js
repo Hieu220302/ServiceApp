@@ -107,7 +107,7 @@ const HomeStaff = () => {
     const closeModalShift = () => {
       setIsOpenModal(false);
     };
-    console.log(isShowButton);
+    
     const handleSelectDay = (day, isSelect) => {
       if (isSelect) {
         const checkDay = formatDateStamp(day);
@@ -375,7 +375,9 @@ const HomeStaff = () => {
                 const isShow =
                   checkTime(inforOrder?.Time) && !inforOrder?.staffCancel;
 
+                const listPaymentMethods = ['Tiền mặt', 'Thanh toán Momo'];
                 const codeWork = convertStrToArr(inforOrder?.code);
+
                 return (
                   <View key={index} style={styles.inforWork}>
                     <View style={styles.inforWorkLeft}>
@@ -445,6 +447,10 @@ const HomeStaff = () => {
                       </Text>
                       <Text style={styles.inforText}>
                         Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
+                      </Text>
+                      <Text style={styles.inforText}>
+                        Phương thức thanh toán:
+                        {listPaymentMethods[inforOrder?.paymentMethods]}
                       </Text>
                     </View>
                     {isShow && (

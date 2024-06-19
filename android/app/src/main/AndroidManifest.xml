@@ -1,7 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <queries>
+        <package android:name="com.mservice.momotransfer" />
+        <package android:name="vn.momo.platform.test" />
+    </queries>
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
@@ -16,9 +18,24 @@
         android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize"
         android:exported="true">
+        
+        <!-- Intent filter hiện tại cho việc khởi chạy app -->
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+        <!-- Thêm intent filter này để xử lý custom URL scheme cho app của bạn -->
+        <intent-filter>
+          <action android:name="android.intent.action.VIEW" />
+
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+
+          <!-- Xác định scheme và host cho URL của app bạn -->
+          <data
+              android:scheme="myapp"
+              android:host="return" />
         </intent-filter>
       </activity>
     </application>

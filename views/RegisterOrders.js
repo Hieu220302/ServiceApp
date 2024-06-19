@@ -193,6 +193,7 @@ const RegisterOrders = () => {
     const customer = dataInforCustomer.find(
       dataCustomer => dataCustomer.id === inforOrder?.id,
     );
+    const listPaymentMethods = ['Tiền mặt', 'Thanh toán Momo'];
     return (
       <View style={styles.inforOrder}>
         <View style={styles.inforOrderLeft}>
@@ -247,6 +248,10 @@ const RegisterOrders = () => {
               </View>
               <Text style={styles.inforText}>
                 Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
+              </Text>
+              <Text style={styles.inforText}>
+                Phương thức thanh toán:
+                {listPaymentMethods[inforOrder?.paymentMethods]}
               </Text>
               <Text style={styles.inforText}>
                 Ghi chú: {inforOrder?.Notes || 'Chưa có ghi chú'}

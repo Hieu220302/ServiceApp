@@ -311,11 +311,12 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
     'Chờ xác nhận hoàn thành',
     'Đã hoàn thành',
   ];
+  const listPaymentMethods = ['Tiền mặt', 'Thanh toán Momo'];
   useEffect(() => {
     dispatch(servicePackage());
   }, [dispatch]);
   const namePackage =
-    dataServicePackage.find(pack => pack.id === inforOrder.isServicePacks)
+    dataServicePackage?.find(pack => pack.id === inforOrder.isServicePacks)
       ?.Name || 'Không đăng ký gói dịch vụ';
   const [isExpand, setIsExpand] = useState(false);
   const codeWork = convertStrToArr(inforOrder?.code);
@@ -378,6 +379,10 @@ const InforOrder = ({inforOrder, changeState, setChangeState}) => {
             </View>
             <Text style={styles.inforText}>
               Tổng tiền: {inforOrder?.Total.toLocaleString()} VND
+            </Text>
+            <Text style={styles.inforText}>
+              Phương thức thanh toán:
+              {listPaymentMethods[inforOrder?.paymentMethods]}
             </Text>
             <Text style={styles.inforText}>
               Ghi chú: {inforOrder?.Notes || 'Chưa có ghi chú'}

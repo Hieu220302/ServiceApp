@@ -13,7 +13,6 @@ const signUpUser = async props => {
       Username: props.Username,
       Password: props.Password,
     });
-    //console.log(response);
     return response.data;
   } catch (error) {
     console.log('error sign in' + error.message);

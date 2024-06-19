@@ -15,6 +15,7 @@ const postOrderService = async (
   isServicePacks,
   days,
   id_group,
+  paymentMethods,
 ) => {
   try {
     const response = await axios.post(urlAPI + 'orderService/postOrder', {
@@ -31,6 +32,7 @@ const postOrderService = async (
       isServicePacks: isServicePacks,
       days: days,
       id_group_service: id_group,
+      paymentMethods: paymentMethods,
     });
     return response.data;
   } catch (error) {

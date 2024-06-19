@@ -267,6 +267,7 @@ const HomeScreen = () => {
               style={styles.textInput}
               value={textSearch}
               placeholder="Dịch vụ bạn muốn tìm kiếm"
+              placeholderTextColor="#000"
               onChangeText={searchService}
               ref={textInputRef}
             />
@@ -391,8 +392,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 10,
     paddingVertical: 0,
-    fontSize: 20,
+    fontSize: 15,
     color: '#000',
+    width: '70%',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -488,7 +490,7 @@ const styles = StyleSheet.create({
   },
   modalViewSearch: {
     left: 100,
-    top: 160,
+    top: 130,
     width: '68%',
     position: 'absolute',
     backgroundColor: 'white',

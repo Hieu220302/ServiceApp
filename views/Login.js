@@ -55,12 +55,14 @@ const Login = () => {
         <TextInput
           style={styles.input}
           placeholder="Tên đăng nhập"
+          placeholderTextColor="#000"
           onChangeText={text => setUserName(text)}
           autoFocus={true}
         />
         <TextInput
           style={styles.input}
           placeholder="Mật khẩu"
+          placeholderTextColor="#000"
           secureTextEntry
           onChangeText={text => setPassword(text)}
         />
