@@ -44,7 +44,7 @@ const ChangeInfor = props => {
   );
   useEffect(() => {
     dispatch(inforUser(dataLogin?.id));
-  }, [dispatch]);
+  }, []);
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || new Date(DOB);
@@ -103,11 +103,11 @@ const ChangeInfor = props => {
         Image: imageSelected,
         Updated_at,
       });
-      dispatch(inforUser(dataLogin?.id));
       if (response?.errno) {
         toastError('Lỗi cập nhật', 'Hệ thống có lỗi xin bạn hãy cập nhật lại');
         navigation.navigate('Home');
       } else {
+        dispatch(inforUser(dataLogin?.id));
         toastSuccess('Xác nhận cập nhật', 'Bạn đã cập nhật thành công');
       }
     } else {

@@ -44,7 +44,7 @@ const HomeStaff = () => {
     dispatch(orderServiceByIdStaff(dataLogin.id));
     dispatch(inforStaffById(dataLogin.id));
     dispatch(servicePackage());
-  }, [dataLogin, dispatch]);
+  }, [dataLogin]);
   useEffect(() => {
     setFreeTime(
       !dataInforStaffId?.Free_time ? '' : dataInforStaffId?.Free_time,
@@ -107,7 +107,7 @@ const HomeStaff = () => {
     const closeModalShift = () => {
       setIsOpenModal(false);
     };
-    
+
     const handleSelectDay = (day, isSelect) => {
       if (isSelect) {
         const checkDay = formatDateStamp(day);
@@ -307,7 +307,8 @@ const HomeStaff = () => {
         dispatch(inforCustomer());
       }, [dispatch]);
 
-      const checkTime = time => {
+      const checkTime = (time, completedDate) => {
+        if (completedDate?.length > 0) return false;
         const specificTime = new Date(time);
 
         const currentTime = new Date();
@@ -373,7 +374,8 @@ const HomeStaff = () => {
                   )?.Name || 'Không đăng ký gói dịch vụ';
                 const time = convertToVietnamTime(inforOrder?.Time);
                 const isShow =
-                  checkTime(inforOrder?.Time) && !inforOrder?.staffCancel;
+                  checkTime(inforOrder?.Time, inforOrder?.completedDate) &&
+                  !inforOrder?.staffCancel;
 
                 const listPaymentMethods = ['Tiền mặt', 'Thanh toán Momo'];
                 const codeWork = convertStrToArr(inforOrder?.code);
@@ -512,16 +514,6 @@ const HomeStaff = () => {
                   style={[styles.modalView, {top: dataLogin?.id ? 70 : 40}]}>
                   {dataLogin?.id && (
                     <>
-                      <TouchableOpacity
-                        style={styles.closeButton}
-                        onPress={() => {
-                          closeModal();
-                          navigation.navigate('ChangeInfor');
-                        }}>
-                        <Text style={styles.textStyle}>
-                          Chỉnh sửa thông tin
-                        </Text>
-                      </TouchableOpacity>
                       {dataInforUser?.Id_role === 1 && (
                         <TouchableOpacity
                           style={styles.closeButton}
