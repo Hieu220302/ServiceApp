@@ -30,6 +30,9 @@ const HomeScreen = () => {
   const {dataGroupService} = useSelector(state => state.groupService);
   const {dataLogin} = useSelector(state => state.login);
   const {dataInforUser} = useSelector(state => state.inforUser);
+  const defaultImage =
+    'http://res.cloudinary.com/dmgiwjxch/image/upload/v1718724523/f29b36d6dc8d7be709db6ac04cbd57e2.jpg';
+  const [imageSelected, setImageSelected] = useState(defaultImage);
   const dispatch = useDispatch();
   useEffect(() => {
     try {
@@ -39,11 +42,20 @@ const HomeScreen = () => {
     } catch (error) {
       console.log(error);
     }
-  }, [dataLogin, dispatch]);
+  }, [dataLogin]);
+  useEffect(() => {
+    try {
+      if (dataInforUser?.Image && dataLogin?.id)
+        setImageSelected(dataInforUser?.Image);
+      else setImageSelected(defaultImage);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [dataInforUser]);
   const navigation = useNavigation();
   const width = Dimensions.get('window').width;
 
-  const [list, setList] = useState(dataInforService.filter(item => item.Image));
+  const list = dataInforService.filter(item => item.Image);
 
   const handleLogOut = () => {
     closeModal();
@@ -108,26 +120,27 @@ const HomeScreen = () => {
     setIsSearch(true);
     if (value === '') setIsSearch(false);
   };
-  const defaultImage =
-    'http://res.cloudinary.com/dmgiwjxch/image/upload/v1718724523/f29b36d6dc8d7be709db6ac04cbd57e2.jpg';
-  const [imageSelected, setImageSelected] = useState(
-    dataInforUser?.Image || defaultImage,
-  );
+
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={closeModalSearch}>
         <View style={styles.pageHome}>
           {isSearch && (
-            <View style={styles.modalViewSearch}>
+            <View
+              style={[
+                styles.modalViewSearch,
+                {top: dataLogin?.id ? 145 : 125},
+              ]}>
               <FlatList
                 data={dataSearch}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({item}) => (
                   <TouchableOpacity
                     style={styles.itemContainer}
-                    onPress={() =>
-                      navigation.navigate('Order', {id: item?.id})
-                    }>
+                    onPress={() => {
+                      closeModal();
+                      navigation.navigate('Order', {id: item?.id});
+                    }}>
                     <Text style={styles.textStyle}>{item.Type}</Text>
                   </TouchableOpacity>
                 )}
@@ -138,127 +151,124 @@ const HomeScreen = () => {
         </View>
       </TouchableWithoutFeedback>
 
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Xin chào bạn ngày mới tốt lành</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Xin chào bạn ngày mới tốt lành</Text>
 
-          <TouchableOpacity style={styles.headerRight} onPress={openModal}>
-            <Image
-              source={{
-                uri: imageSelected,
-              }}
-              style={{width: 40, height: 40, borderRadius: 100}}
-            />
+        <TouchableOpacity style={styles.headerRight} onPress={openModal}>
+          <Image
+            source={{
+              uri: imageSelected,
+            }}
+            style={{width: 40, height: 40, borderRadius: 100}}
+          />
 
-            {dataLogin?.id && (
-              <Text style={styles.headerText}>{dataInforUser?.Name}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-        {isShow && (
-          <Modal
-            transparent={true}
-            animationType="none"
-            visible={isShow}
-            onRequestClose={closeModalRegister}>
-            <TouchableWithoutFeedback onPress={closeModalRegister}>
-              <View style={styles.overlayView}>
-                <View style={styles.modalViewRegister}>
-                  <Text style={styles.textDate}>Chọn công việc</Text>
-                  {dataGroupService?.map(groupService => {
-                    return (
-                      <TouchableOpacity
-                        key={groupService?.id}
-                        style={styles.closeButton}
-                        onPress={() => SignUpStaff(groupService?.id)}>
-                        <Text style={styles.textStyle}>
-                          {groupService?.Name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+          {dataLogin?.id && (
+            <Text style={styles.headerText}>{dataInforUser?.Name}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      {isShow && (
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={isShow}
+          onRequestClose={closeModalRegister}>
+          <TouchableWithoutFeedback onPress={closeModalRegister}>
+            <View style={styles.overlayView}>
+              <View style={styles.modalViewRegister}>
+                <Text style={styles.textDate}>Chọn công việc</Text>
+                {dataGroupService?.map(groupService => {
+                  return (
+                    <TouchableOpacity
+                      key={groupService?.id}
+                      style={styles.closeButton}
+                      onPress={() => SignUpStaff(groupService?.id)}>
+                      <Text style={styles.textStyle}>{groupService?.Name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            </TouchableWithoutFeedback>
-          </Modal>
-        )}
-        {modalVisible && (
-          <Modal
-            transparent={true}
-            animationType="none"
-            visible={modalVisible}
-            onRequestClose={closeModal}>
-            <TouchableWithoutFeedback onPress={closeModal}>
-              <View style={styles.overlay}>
-                <View
-                  style={[styles.modalView, {top: dataLogin?.id ? 70 : 40}]}>
-                  {dataLogin?.id && (
-                    <>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
+      {modalVisible && (
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={modalVisible}
+          onRequestClose={closeModal}>
+          <TouchableWithoutFeedback onPress={closeModal}>
+            <View style={styles.overlay}>
+              <View style={[styles.modalView, {top: dataLogin?.id ? 70 : 40}]}>
+                {dataLogin?.id && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => {
+                        closeModal();
+                        navigation.navigate('ChangeInfor');
+                      }}>
+                      <Text style={styles.textStyle}>Chỉnh sửa thông tin</Text>
+                    </TouchableOpacity>
+                    {dataInforUser?.Id_role === 1 && (
                       <TouchableOpacity
                         style={styles.closeButton}
                         onPress={() => {
                           closeModal();
-                          navigation.navigate('ChangeInfor');
+                          navigation.navigate('HomeStaff');
                         }}>
                         <Text style={styles.textStyle}>
-                          Chỉnh sửa thông tin
+                          Chuyển qua giao diện nhân viên
                         </Text>
                       </TouchableOpacity>
-                      {dataInforUser?.Id_role === 1 && (
+                    )}
+                    {dataInforUser?.Id_role === 2 &&
+                      dataInforUser?.isSignUpStaff === 0 && (
                         <TouchableOpacity
                           style={styles.closeButton}
-                          onPress={() => {
-                            closeModal();
-                            navigation.navigate('HomeStaff');
-                          }}>
+                          onPress={handleSignUpStaff}>
                           <Text style={styles.textStyle}>
-                            Chuyển qua giao diện nhân viên
+                            Đăng kí làm nhân viên
                           </Text>
                         </TouchableOpacity>
                       )}
-                      {dataInforUser?.Id_role === 2 &&
-                        dataInforUser?.isSignUpStaff === 0 && (
-                          <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={handleSignUpStaff}>
-                            <Text style={styles.textStyle}>
-                              Đăng kí làm nhân viên
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                      <TouchableOpacity
-                        style={styles.closeButton}
-                        onPress={handleLogOut}>
-                        <Text style={styles.textStyle}>Đăng xuất</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                  {!dataLogin?.id && (
                     <TouchableOpacity
                       style={styles.closeButton}
-                      onPress={() => navigation.navigate('Login')}>
-                      <Text style={styles.textStyle}>Đăng nhập</Text>
+                      onPress={handleLogOut}>
+                      <Text style={styles.textStyle}>Đăng xuất</Text>
                     </TouchableOpacity>
-                  )}
-                </View>
+                  </>
+                )}
+                {!dataLogin?.id && (
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => {
+                      closeModal();
+                      navigation.navigate('Login');
+                    }}>
+                    <Text style={styles.textStyle}>Đăng nhập</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            </TouchableWithoutFeedback>
-          </Modal>
-        )}
-        <View style={styles.groupSearch}>
-          <View style={styles.viewSearch}>
-            <Text style={styles.headerText}>Tìm kiếm:</Text>
-            <TextInput
-              style={styles.textInput}
-              value={textSearch}
-              placeholder="Dịch vụ bạn muốn tìm kiếm"
-              placeholderTextColor="#000"
-              onChangeText={searchService}
-              ref={textInputRef}
-            />
-          </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
+      <View style={styles.groupSearch}>
+        <View style={styles.viewSearch}>
+          <Text style={[styles.headerText, {marginRight: 10}]}>Tìm kiếm:</Text>
+          <TextInput
+            style={styles.textInput}
+            value={textSearch}
+            placeholder="Dịch vụ bạn muốn tìm kiếm"
+            placeholderTextColor="#000"
+            onChangeText={searchService}
+            ref={textInputRef}
+          />
         </View>
       </View>
+
       <ScrollView>
         <View style={styles.bannerContainer}>
           <Carousel
@@ -270,7 +280,10 @@ const HomeScreen = () => {
             scrollAnimationDuration={3000}
             renderItem={({item}) => (
               <TouchableOpacity
-                onPress={() => navigation.navigate('Order', {id: item.id})}>
+                onPress={() => {
+                  closeModal();
+                  navigation.navigate('Order', {id: item.id});
+                }}>
                 <Image style={styles.bannerImage} source={{uri: item.Image}} />
               </TouchableOpacity>
             )}
@@ -334,19 +347,16 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   header: {
+    backgroundColor: '#f26522',
     padding: 16,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    backgroundColor: '#f26522',
-    marginBottom: 5,
   },
   headerText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
-    marginRight: 20,
   },
   itemContainer: {
     marginBottom: 10,
@@ -475,8 +485,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalViewSearch: {
-    left: 100,
-    top: 130,
+    left: 90,
     width: '68%',
     position: 'absolute',
     backgroundColor: 'white',
