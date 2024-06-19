@@ -42,23 +42,8 @@ const HomeScreen = () => {
   }, [dataLogin, dispatch]);
   const navigation = useNavigation();
   const width = Dimensions.get('window').width;
-  const list = [
-    {
-      id: 1,
-      title: 'First Item',
-      image: require('./image/1.jpg'),
-    },
-    {
-      id: 2,
-      title: 'Second Item',
-      image: require('./image/2.jpg'),
-    },
-    {
-      id: 3,
-      title: 'Third Item',
-      image: require('./image/3.jpg'),
-    },
-  ];
+
+  const [list, setList] = useState(dataInforService.filter(item => item.Image));
 
   const handleLogOut = () => {
     closeModal();
@@ -284,9 +269,10 @@ const HomeScreen = () => {
             pagingEnabled={pagingEnabled}
             scrollAnimationDuration={3000}
             renderItem={({item}) => (
-              <View>
-                <Image style={styles.bannerImage} source={item.image} />
-              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Order', {id: item.id})}>
+                <Image style={styles.bannerImage} source={{uri: item.Image}} />
+              </TouchableOpacity>
             )}
           />
         </View>
@@ -420,7 +406,7 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     width: '100%',
-    height: 260,
+    height: 200,
     borderRadius: 10,
   },
   servicesContainer: {
